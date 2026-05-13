@@ -1,70 +1,239 @@
-# Getting Started with Create React App
+# EcoSavor Frontend — React con Patrones de Diseño
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+## Patrones de Diseño Implementados (3/3)
 
-## Available Scripts
+### 1. Module Pattern 📦
 
-In the project directory, you can run:
+**Ubicación:** `src/modules/index.js`
 
-### `npm start`
+**Descripción:** Organiza el código en módulos exportables que encapsulan funcionalidad relacionada.
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+```javascript
+// modules/index.js
+export { AppProvider, useAppContext } from '../context/AppContext';
+export { useAuthViewModel } from '../viewmodels/useAuthViewModel';
+export { LoginView, CatalogView, AdminView } from '../views/';
+export { DiscountedProductCard } from '../components/';
+```
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+**Beneficios:**
+- Encapsulamiento de funcionalidad
+- Reutilización de componentes
+- Imports claros y explícitos
+- Separación de responsabilidades
 
-### `npm test`
+---
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+### 2. MVVM con React (Model-View-ViewModel) 🎯
 
-### `npm run build`
+**Ubicación:**
+- **ViewModel:** `src/viewmodels/*.js` (custom hooks)
+- **View:** `src/views/*.jsx` (componentes React)
+- **Model:** Backend microservicios
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+**Estructura:**
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+```
+viewmodels/
+├── useAuthViewModel.js    # Lógica de autenticación
+├── useProductsViewModel.js # Lógica de productos
+└── useOrdersViewModel.js   # Lógica de órdenes
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+views/
+├── LoginView.jsx          # Vista de login
+├── CatalogView.jsx        # Vista de catálogo
+├── AdminView.jsx          # Vista de administración
+└── MyOrdersView.jsx       # Vista de órdenes
+```
 
-### `npm run eject`
+**Ejemplo ViewModel:**
+```javascript
+// useAuthViewModel.js
+export function useAuthViewModel() {
+  const { dispatch } = useAppContext();
+  
+  const login = async (email, password) => {
+    // Lógica de negocio
+    const response = await fetch('/api/auth/login', {...});
+    dispatch({ type: 'SET_USER', payload: {...} });
+  };
+  
+  return { login, loading, error, user };
+}
+```
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+**Ejemplo View:**
+```javascript
+// LoginView.jsx
+export function LoginView({ onNavigate }) {
+  const { login, loading, error } = useAuthViewModel();
+  
+  return (
+    <form onSubmit={handleSubmit}>
+      {/* UI sin lógica de negocio */}
+    </form>
+  );
+}
+```
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+**Beneficios:**
+- Separación clara entre UI y lógica
+- Views testeables independientemente
+- ViewModels reutilizables
+- Mantenibilidad mejorada
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+---
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+### 3. Observer Pattern (Context API) 👁️
 
-## Learn More
+**Ubicación:** `src/context/AppContext.js`
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+**Descripción:** Implementa un sistema de publicación-suscripción para el estado global de la aplicación.
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+**Componentes:**
+- **Observable:** `AppContext` (proveedor de estado)
+- **Observers:** Componentes que usan `useAppContext()`
 
-### Code Splitting
+```javascript
+// AppContext.js
+const AppContext = createContext(null);
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+export function AppProvider({ children }) {
+  const [state, dispatch] = useReducer(appReducer, initialState);
+  return <AppContext.Provider value={{ state, dispatch }}>{children}</AppProvider>;
+}
 
-### Analyzing the Bundle Size
+export function useAppContext() {
+  const context = useContext(AppContext);
+  // Los componentes se "suscriben" al contexto
+  return context;
+}
+```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+**Flujo:**
+1. Componente dispatcha una acción → `dispatch({ type: 'SET_USER', payload: {...} })`
+2. Reducer actualiza el estado
+3. Todos los componentes suscriptos se notifica y re-renderizan
 
-### Making a Progressive Web App
+**Beneficios:**
+- Estado global accesible desde cualquier componente
+- Actualizaciones reactivas automáticas
+- Sin prop drilling
+- Desacoplamiento de componentes
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+---
 
-### Advanced Configuration
+## Vistas de la Aplicación
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+### Para Usuarios (Buyers)
+- **LoginView** — Inicio de sesión
+- **RegisterView** — Registro de usuarios
+- **CatalogView** — Ver productos y reservar
+- **MyOrdersView** — Ver mis órdenes
 
-### Deployment
+### Para Restaurantes (Admin)
+- **AdminView** — Gestionar productos (CRUD completo)
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+---
 
-### `npm run build` fails to minify
+## Componentes Reutilizables
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+### DiscountedProductCard
+Componente reciclado del package `@ecosaver/ui` del compañero.
+
+**Props:**
+- `name` — Nombre del producto
+- `originalPrice` — Precio original
+- `discountedPrice` — Precio con descuento
+- `stock` — Cantidad disponible
+- `expiresAt` — Fecha de vencimiento
+- `onReserve` — Callback al reservar
+
+---
+
+## Quick Start
+
+```bash
+cd ecosavor-frontend
+
+# Instalar dependencias
+npm install
+
+# Iniciar servidor de desarrollo
+npm start
+
+# Construir para producción
+npm run build
+
+# Ejecutar tests
+npm test
+```
+
+---
+
+## Conexión con el Backend
+
+El frontend se conecta al API Gateway en `http://localhost:3000/api`
+
+**Endpoints usados:**
+- `POST /api/auth/login` — Login
+- `POST /api/auth/register` — Registro
+- `GET /api/catalog/products` — Listar productos
+- `POST /api/catalog/products` — Crear producto (admin)
+- `POST /api/orders` — Crear orden
+- `GET /api/orders/my-orders` — Mis órdenes
+
+---
+
+## Estructura de Carpetas
+
+```
+ecosavor-frontend/
+├── src/
+│   ├── components/          # Componentes compartidos
+│   │   └── DiscountedProductCard.jsx
+│   ├── context/             # Observer Pattern
+│   │   └── AppContext.js
+│   ├── modules/             # Module Pattern
+│   │   └── index.js
+│   ├── viewmodels/          # MVVM (ViewModel layer)
+│   │   ├── useAuthViewModel.js
+│   │   ├── useProductsViewModel.js
+│   │   └── useOrdersViewModel.js
+│   ├── views/               # MVVM (View layer)
+│   │   ├── LoginView.jsx
+│   │   ├── RegisterView.jsx
+│   │   ├── CatalogView.jsx
+│   │   ├── AdminView.jsx
+│   │   ├── MyOrdersView.jsx
+│   │   └── Navbar.jsx
+│   ├── App.js               # Punto de entrada
+│   └── App.css              # Estilos globales
+├── package.json
+└── README.md
+```
+
+---
+
+## Patrones por Archivo
+
+| Archivo | Patrón | Rol |
+|---------|--------|-----|
+| `modules/index.js` | Module | Exporta módulos |
+| `context/AppContext.js` | Observer | Estado global |
+| `viewmodels/*.js` | MVVM | ViewModel |
+| `views/*.jsx` | MVVM | View |
+| `components/*.jsx` | Module | Componente reusable |
+
+---
+
+## Justificación de Patrones
+
+### ¿Por qué Module Pattern?
+Para organizar el código en módulos cohesivos que puedan ser importados selectivamente, mejorando la mantenibilidad y el tree-shaking.
+
+### ¿Por qué MVVM?
+Para separar claramente la lógica de negocio (ViewModel) de la UI (View), permitiendo tests independientes y mejor colaboración en equipo.
+
+### ¿Por qué Observer Pattern?
+Para manejar el estado global de forma reactiva, evitando prop drilling y permitiendo que cualquier componente se suscriba a cambios de estado.
