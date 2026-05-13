@@ -4,7 +4,7 @@ import { useProductsViewModel } from '../viewmodels/useProductsViewModel';
 import { useAuthViewModel } from '../viewmodels/useAuthViewModel';
 
 export function AdminView() {
-  const { products, loadProducts, createProduct, updateProduct, deleteProduct, loading, error } = useProductsViewModel();
+  const { products, loadProducts, loadMyProducts, createProduct, updateProduct, deleteProduct, loading, error } = useProductsViewModel();
   const { user } = useAuthViewModel();
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
@@ -20,8 +20,8 @@ export function AdminView() {
   });
 
   useEffect(() => {
-    loadProducts();
-  }, [loadProducts]);
+    loadMyProducts();
+  }, [loadMyProducts]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -44,9 +44,7 @@ export function AdminView() {
       category: formData.category,
       expiresAt: new Date(formData.expiresAt),
       images: formData.imageUrl ? [formData.imageUrl] : [],
-      // Datos del restaurante (del usuario logueado)
-      restaurantId: user?.id || user?._id || 'restaurant-001',
-      restaurantName: user?.restaurantName || user?.name || 'Mi Restaurante',
+      // NO enviar restaurantId ni restaurantName - el backend lo asigna automáticamente desde el token
     };
 
     let result;
@@ -114,6 +112,15 @@ export function AdminView() {
 
       {loading && <div className="loading">Cargando...</div>}
       {error && <div className="error-message">{error}</div>}
+      
+      {products.length === 0 && !loading && (
+        <div className="empty-state">
+          <p>No tenés productos cargados todavía</p>
+          <button onClick={() => setIsFormOpen(true)} className="btn-primary">
+            + Crear tu primer producto
+          </button>
+        </div>
+      )}
 
       {/* Formulario Modal */}
       {isFormOpen && (

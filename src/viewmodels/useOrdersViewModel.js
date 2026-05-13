@@ -1,8 +1,7 @@
 // ViewModel para Órdenes (MVVM Pattern)
 import { useState, useCallback } from 'react';
 import { useAppContext, ActionTypes } from '../context/AppContext';
-
-const API_URL = 'http://localhost:3000/api';
+import api from '../services/api';
 
 export function useOrdersViewModel() {
   const { dispatch, state } = useAppContext();
@@ -10,99 +9,199 @@ export function useOrdersViewModel() {
 
   // Crear orden/reserva
   const createOrder = useCallback(async (orderData) => {
+    console.log('🛒 createOrder (ViewModel) - Iniciando...', orderData);
     dispatch({ type: ActionTypes.SET_LOADING, payload: true });
     setLocalError(null);
 
     try {
-      const response = await fetch(`${API_URL}/orders`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-        },
-        body: JSON.stringify(orderData),
+      // Timeout de 30 segundos
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error('Timeout: El servidor tardó demasiado en responder. Intentá de nuevo.')), 30000);
       });
+      
+      // Usar API directa al orders-service (no pasa por el gateway)
+      const orderPromise = api.post('/orders', orderData);
+      
+      // Race entre timeout y request real
+      const response = await Promise.race([orderPromise, timeoutPromise]);
+      const data = response.data;
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Error al crear orden');
-      }
+      console.log('🛒 createOrder (ViewModel) - Response:', data);
 
       // Agregar orden al estado global
       dispatch({
         type: ActionTypes.ADD_ORDER,
-        payload: data.order || data,
+        payload: data.data || data.order,
       });
 
-      return { success: true, data: data.order || data };
+      return { success: true, data: data.data || data.order };
     } catch (error) {
-      setLocalError(error.message);
-      dispatch({ type: ActionTypes.SET_ERROR, payload: error.message });
-      return { success: false, error: error.message };
+      console.error('❌ createOrder (ViewModel) - Error:', error);
+      
+      // Manejar error de stock (409)
+      if (error.response?.status === 409) {
+        const message = 'Stock insuficiente para algunos productos. Por favor revisá tu carrito.';
+        setLocalError(message);
+        dispatch({ type: ActionTypes.SET_ERROR, payload: message });
+        return { success: false, error: message, details: error.response?.data?.details };
+      }
+      
+      const message = error.response?.data?.error || error.message || 'Error al crear orden';
+      setLocalError(message);
+      dispatch({ type: ActionTypes.SET_ERROR, payload: message });
+      return { success: false, error: message };
     } finally {
       dispatch({ type: ActionTypes.SET_LOADING, payload: false });
     }
   }, [dispatch]);
 
-  // Obtener mis órdenes
+  // Obtener MIS órdenes (para el usuario autenticado)
+  // - Si es restaurant: devuelve órdenes de SU restaurante
+  // - Si es buyer: devuelve SUS órdenes como cliente
   const getMyOrders = useCallback(async () => {
+    console.log('📋 getMyOrders - Iniciando carga...');
     dispatch({ type: ActionTypes.SET_LOADING, payload: true });
     setLocalError(null);
 
     try {
-      const response = await fetch(`${API_URL}/orders/my-orders`, {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-        },
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Error al cargar órdenes');
+      console.log('📋 getMyOrders - Llamando a API /orders...');
+      const response = await api.get('/orders');
+      console.log('📋 getMyOrders - Response recibido:', response.data);
+      
+      // Extraer array de órdenes correctamente
+      // La API puede devolver: {data: [...]} o {data: {data: [...]}}
+      let ordersArray = [];
+      if (Array.isArray(response.data)) {
+        ordersArray = response.data;
+      } else if (Array.isArray(response.data.data)) {
+        ordersArray = response.data.data;
+      } else if (Array.isArray(response.data.orders)) {
+        ordersArray = response.data.orders;
+      } else if (response.data?.data && Array.isArray(response.data.data.data)) {
+        ordersArray = response.data.data.data;
+      } else {
+        console.error('📋 getMyOrders - Formato de response inesperado:', response.data);
+        ordersArray = [];
       }
+      
+      console.log('📋 getMyOrders - Órdenes extraídas:', ordersArray.length);
 
-      dispatch({ type: ActionTypes.SET_ORDERS, payload: data.orders || data });
-      return { success: true, orders: data.orders || data };
+      dispatch({ type: ActionTypes.SET_ORDERS, payload: ordersArray });
+      return { success: true, orders: ordersArray };
     } catch (error) {
-      setLocalError(error.message);
-      dispatch({ type: ActionTypes.SET_ERROR, payload: error.message });
-      return { success: false, error: error.message };
+      console.error('❌ getMyOrders - Error:', error);
+      const message = error.response?.data?.error || error.message || 'Error al cargar órdenes';
+      setLocalError(message);
+      dispatch({ type: ActionTypes.SET_ERROR, payload: message });
+      return { success: false, error: message };
     } finally {
+      console.log('📋 getMyOrders - Finalizado (loading = false)');
       dispatch({ type: ActionTypes.SET_LOADING, payload: false });
     }
   }, [dispatch]);
 
   // Cancelar orden
   const cancelOrder = useCallback(async (orderId) => {
-    window.alert('¿Seguro que querés cancelar esta orden?');
-    // Nota: Usamos window.alert en vez de confirm() por ESLint
+    if (!window.confirm('¿Seguro que querés cancelar esta orden?')) {
+      return { success: false, error: 'Cancelado por el usuario' };
+    }
 
     try {
-      const response = await fetch(`${API_URL}/orders/${orderId}/cancel`, {
-        method: 'PATCH',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error('Error al cancelar orden');
-      }
+      const response = await api.post(`/orders/${orderId}/cancel`);
+      const data = response.data;
 
       // Recargar órdenes
       await getMyOrders();
 
-      return { success: true };
+      return { success: true, data };
     } catch (error) {
-      setLocalError(error.message);
-      dispatch({ type: ActionTypes.SET_ERROR, payload: error.message });
-      return { success: false, error: error.message };
-    } finally {
-      dispatch({ type: ActionTypes.SET_LOADING, payload: false });
+      const message = error.response?.data?.error || error.message || 'Error al cancelar orden';
+      setLocalError(message);
+      dispatch({ type: ActionTypes.SET_ERROR, payload: message });
+      return { success: false, error: message };
     }
   }, [dispatch, getMyOrders]);
+
+  // Confirmar orden (restaurant)
+  const confirmOrder = useCallback(async (orderId) => {
+    try {
+      const response = await api.post(`/orders/${orderId}/confirm`);
+      const data = response.data;
+
+      // Actualizar orden en el estado
+      dispatch({
+        type: ActionTypes.UPDATE_ORDER,
+        payload: data.data || data.order,
+      });
+
+      return { success: true };
+    } catch (error) {
+      const message = error.response?.data?.error || error.message || 'Error al confirmar orden';
+      setLocalError(message);
+      dispatch({ type: ActionTypes.SET_ERROR, payload: message });
+      return { success: false, error: message };
+    }
+  }, [dispatch]);
+
+  // Marcar como en preparación (restaurant)
+  const markAsPreparing = useCallback(async (orderId) => {
+    try {
+      const response = await api.post(`/orders/${orderId}/preparing`);
+      const data = response.data;
+
+      dispatch({
+        type: ActionTypes.UPDATE_ORDER,
+        payload: data.data || data.order,
+      });
+
+      return { success: true };
+    } catch (error) {
+      const message = error.response?.data?.error || error.message || 'Error al actualizar orden';
+      setLocalError(message);
+      dispatch({ type: ActionTypes.SET_ERROR, payload: message });
+      return { success: false, error: message };
+    }
+  }, [dispatch]);
+
+  // Marcar como lista (restaurant)
+  const markAsReady = useCallback(async (orderId) => {
+    try {
+      const response = await api.post(`/orders/${orderId}/ready`);
+      const data = response.data;
+
+      dispatch({
+        type: ActionTypes.UPDATE_ORDER,
+        payload: data.data || data.order,
+      });
+
+      return { success: true };
+    } catch (error) {
+      const message = error.response?.data?.error || error.message || 'Error al actualizar orden';
+      setLocalError(message);
+      dispatch({ type: ActionTypes.SET_ERROR, payload: message });
+      return { success: false, error: message };
+    }
+  }, [dispatch]);
+
+  // Completar orden (restaurant)
+  const completeOrder = useCallback(async (orderId) => {
+    try {
+      const response = await api.post(`/orders/${orderId}/complete`);
+      const data = response.data;
+
+      dispatch({
+        type: ActionTypes.UPDATE_ORDER,
+        payload: data.data || data.order,
+      });
+
+      return { success: true };
+    } catch (error) {
+      const message = error.response?.data?.error || error.message || 'Error al completar orden';
+      setLocalError(message);
+      dispatch({ type: ActionTypes.SET_ERROR, payload: message });
+      return { success: false, error: message };
+    }
+  }, [dispatch]);
 
   // Estado derivado
   const orders = state.orders;
@@ -119,5 +218,9 @@ export function useOrdersViewModel() {
     createOrder,
     getMyOrders,
     cancelOrder,
+    confirmOrder,
+    markAsPreparing,
+    markAsReady,
+    completeOrder,
   };
 }

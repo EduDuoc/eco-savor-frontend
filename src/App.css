@@ -60,6 +60,16 @@ body {
   font-size: 1.2rem;
 }
 
+.cart-count {
+  background: #ef4444;
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 0.125rem 0.5rem;
+  border-radius: 12px;
+  margin-left: 0.25rem;
+}
+
 .user-info {
   display: flex;
   align-items: center;
@@ -280,6 +290,20 @@ body {
   text-align: center;
   color: #64748b;
   padding: 3rem;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 3rem;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.empty-state p {
+  margin-bottom: 1.5rem;
+  color: #64748b;
+  font-size: 1.1rem;
 }
 
 /* Admin */

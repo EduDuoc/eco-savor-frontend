@@ -6,20 +6,32 @@
 
 import React, { useState, useEffect } from 'react';
 import { AppProvider, useAppContext, useAuthViewModel } from './modules';
-import { Navbar, LoginView, RegisterView, CatalogView, AdminView, MyOrdersView, CartView } from './modules';
+import { Navbar, LoginView, RegisterView, CatalogView, AdminView, RestaurantOrdersView, MyOrdersView, CartView } from './modules';
 import './App.css';
 
 // Componente principal que usa el contexto (Observer Pattern)
 function AppContent() {
   const { state } = useAppContext();
-  const { isAuthenticated, user } = useAuthViewModel();
+  const { isAuthenticated, user, logout } = useAuthViewModel();
   const [currentView, setCurrentView] = useState('catalog'); // Por defecto catálogo (invitado)
+
+  // Escuchar evento de auth fallida (token expirado) desde api.js
+  useEffect(() => {
+    const handleAuthFailed = () => {
+      logout();
+      setCurrentView('login');
+      alert('Tu sesión expiró. Por favor, iniciá sesión nuevamente.');
+    };
+
+    window.addEventListener('auth-failed', handleAuthFailed);
+    return () => window.removeEventListener('auth-failed', handleAuthFailed);
+  }, [logout]);
 
   // Redirigir según estado de autenticación (solo para login/register)
   useEffect(() => {
     // Si está logueado y está en login/register, ir al catálogo
     if (isAuthenticated && (currentView === 'login' || currentView === 'register')) {
-      setCurrentView(user?.role === 'restaurant' ? 'admin' : 'catalog');
+      setCurrentView(user?.role === 'restaurant' ? 'restaurant-orders' : 'catalog');
     }
   }, [isAuthenticated, user, currentView]);
 
@@ -34,6 +46,8 @@ function AppContent() {
         return <CatalogView onNavigate={setCurrentView} />;
       case 'admin':
         return <AdminView />;
+      case 'restaurant-orders':
+        return <RestaurantOrdersView />;
       case 'orders':
         return <MyOrdersView />;
       case 'cart':

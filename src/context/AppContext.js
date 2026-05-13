@@ -18,6 +18,7 @@ const ActionTypes = {
   SET_PRODUCTS: 'SET_PRODUCTS',
   SET_ORDERS: 'SET_ORDERS',
   ADD_ORDER: 'ADD_ORDER',
+  UPDATE_ORDER: 'UPDATE_ORDER',
   SET_LOADING: 'SET_LOADING',
   SET_ERROR: 'SET_ERROR',
   CLEAR_ERROR: 'CLEAR_ERROR',
@@ -36,6 +37,13 @@ function appReducer(state, action) {
       return { ...state, orders: action.payload };
     case ActionTypes.ADD_ORDER:
       return { ...state, orders: [...state.orders, action.payload] };
+    case ActionTypes.UPDATE_ORDER:
+      return {
+        ...state,
+        orders: state.orders.map(order =>
+          order._id === action.payload._id ? action.payload : order
+        )
+      };
     case ActionTypes.SET_LOADING:
       return { ...state, loading: action.payload };
     case ActionTypes.SET_ERROR:

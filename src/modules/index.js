@@ -14,6 +14,7 @@ export { LoginView } from '../views/LoginView';
 export { RegisterView } from '../views/RegisterView';
 export { CatalogView } from '../views/CatalogView';
 export { AdminView } from '../views/AdminView';
+export { RestaurantOrdersView } from '../views/RestaurantOrdersView';
 export { MyOrdersView } from '../views/MyOrdersView';
 export { CartView } from '../views/CartView';
 export { Navbar } from '../views/Navbar';
