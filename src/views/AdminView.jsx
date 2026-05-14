@@ -44,6 +44,7 @@ export function AdminView() {
       category: formData.category,
       expiresAt: new Date(formData.expiresAt),
       images: formData.imageUrl ? [formData.imageUrl] : [],
+      // NO enviar restaurantId ni restaurantName - el backend lo asigna automáticamente desde el token
     };
 
     let result;
@@ -100,26 +101,6 @@ export function AdminView() {
     }
   };
 
-  const getEmojiForProduct = (product) => {
-    const nameLower = product.name?.toLowerCase() || '';
-    const categoryLower = product.category?.toLowerCase() || '';
-    
-    if (categoryLower === 'panadería') return '🍞';
-    if (categoryLower === 'bebidas') return '🥤';
-    if (categoryLower === 'postres') return '🍰';
-    if (categoryLower === 'comida caliente') return '🍲';
-    
-    if (nameLower.includes('tomate')) return '🍅';
-    if (nameLower.includes('palta')) return '🥑';
-    if (nameLower.includes('manzana')) return '🍎';
-    if (nameLower.includes('zanahoria')) return '🥕';
-    if (nameLower.includes('pizza')) return '🍕';
-    if (nameLower.includes('sushi')) return '🍣';
-    if (nameLower.includes('burger')) return '🍔';
-    
-    return '🥡';
-  };
-
   return (
     <div className="admin-container">
       <h1>Gestión de productos</h1>
@@ -143,33 +124,35 @@ export function AdminView() {
               />
             </div>
             <div className="form-group">
-              <label>Comercio</label>
-              <input
-                type="text"
-                value={formData.restaurantName || ''}
-                onChange={(e) => setFormData({ ...formData, restaurantName: e.target.value })}
-                placeholder="Ej: Pizza Hut"
+              <label>Descripción</label>
+              <textarea
+                value={formData.description}
+                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                required
+                rows="3"
               />
             </div>
-            <div className="form-group">
-              <label>Precio original ($)</label>
-              <input
-                type="number"
-                value={formData.price}
-                onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-                required
-                placeholder="24990"
-              />
-            </div>
-            <div className="form-group">
-              <label>Precio con descuento ($)</label>
-              <input
-                type="number"
-                value={formData.discountPrice}
-                onChange={(e) => setFormData({ ...formData, discountPrice: e.target.value })}
-                required
-                placeholder="14990"
-              />
+            <div className="form-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+              <div className="form-group">
+                <label>Precio original ($)</label>
+                <input
+                  type="number"
+                  value={formData.price}
+                  onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                  required
+                  placeholder="24990"
+                />
+              </div>
+              <div className="form-group">
+                <label>Precio con descuento ($)</label>
+                <input
+                  type="number"
+                  value={formData.discountPrice}
+                  onChange={(e) => setFormData({ ...formData, discountPrice: e.target.value })}
+                  required
+                  placeholder="14990"
+                />
+              </div>
             </div>
             <div className="form-group">
               <label>Stock</label>
@@ -235,20 +218,17 @@ export function AdminView() {
 
           {products.map((product) => (
             <div key={product._id || product.id} className="product-card">
-              <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-                <span style={{ fontSize: '3rem' }}>{getEmojiForProduct(product)}</span>
-                <div className="product-card-info">
-                  <h3>{product.name}</h3>
-                  <p>{product.restaurantName || 'Sin restaurante'}</p>
-                  <div className="product-card-price">
-                    <span className="original">${(product.price || product.originalPrice)?.toLocaleString('es-CL')}</span>
-                    <span className="discounted">${(product.discountPrice || product.discountedPrice)?.toLocaleString('es-CL')}</span>
-                  </div>
+              <div style={{ flex: 1 }}>
+                <h3 style={{ fontSize: '1.1rem', color: '#1e293b', marginBottom: '0.25rem' }}>{product.name}</h3>
+                <p style={{ color: '#64748b', fontSize: '0.9rem', margin: '0.25rem 0' }}>{product.restaurantName || 'Sin restaurante'}</p>
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.5rem', marginTop: '0.5rem' }}>
+                  <span style={{ color: '#94a3b8', textDecoration: 'line-through', fontSize: '0.9rem' }}>${(product.price || product.originalPrice)?.toLocaleString('es-CL')}</span>
+                  <span style={{ color: '#16a34a', fontSize: '1.25rem', fontWeight: '700' }}>${(product.discountPrice || product.discountedPrice)?.toLocaleString('es-CL')}</span>
                 </div>
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', alignItems: 'flex-end' }}>
-                <span className="product-card-stock">Stock: {product.quantity || product.stock}</span>
-                <div className="product-card-actions">
+                <span style={{ background: '#d1fae5', color: '#16a34a', padding: '0.25rem 0.75rem', borderRadius: '99px', fontSize: '0.85rem', fontWeight: '600' }}>Stock: {product.quantity || product.stock}</span>
+                <div style={{ display: 'flex', gap: '0.5rem' }}>
                   <button onClick={() => handleEdit(product)} className="btn-edit">
                     ✏️ Editar
                   </button>

@@ -119,10 +119,28 @@ export function CartView({ onNavigate, onSuccess }) {
               </button>
               <button
                 onClick={() => removeFromCart(item._id || item.id)}
-                className="btn-delete"
-                style={{ marginLeft: '0.5rem' }}
+                style={{ 
+                  marginLeft: '0.5rem',
+                  background: '#fef2f2',
+                  color: '#ef4444',
+                  border: 'none',
+                  padding: '0.5rem 0.75rem',
+                  borderRadius: '6px',
+                  cursor: 'pointer',
+                  fontWeight: '500',
+                  fontSize: '0.85rem',
+                  transition: 'all 0.2s'
+                }}
+                onMouseOver={(e) => {
+                  e.target.style.background = '#ef4444';
+                  e.target.style.color = '#ffffff';
+                }}
+                onMouseOut={(e) => {
+                  e.target.style.background = '#fef2f2';
+                  e.target.style.color = '#ef4444';
+                }}
               >
-                Eliminar
+                🗑️ Eliminar
               </button>
             </div>
             <div style={{ 
