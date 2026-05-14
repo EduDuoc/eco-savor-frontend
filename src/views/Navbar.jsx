@@ -32,8 +32,12 @@ export function Navbar({ currentView, onNavigate }) {
     // Escuchar cambios en localStorage (solo entre pestañas)
     window.addEventListener('storage', updateCartCount);
     
+    // Escuchar evento personalizado (misma pestaña - cuando el ViewModel actualiza)
+    window.addEventListener('cart-changed', updateCartCount);
+    
     return () => {
       window.removeEventListener('storage', updateCartCount);
+      window.removeEventListener('cart-changed', updateCartCount);
     };
   }, []);
 

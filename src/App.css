@@ -146,8 +146,8 @@ body {
 /* Botones */
 .btn-primary {
   padding: 0.75rem 1.5rem;
-  background: #16a34a;
-  color: #fff;
+  background: #16a34a !important;
+  color: #fff !important;
   border: none;
   border-radius: 6px;
   font-size: 1rem;
@@ -157,11 +157,11 @@ body {
 }
 
 .btn-primary:hover:not(:disabled) {
-  background: #15803d;
+  background: #15803d !important;
 }
 
 .btn-primary:disabled {
-  background: #94a3b8;
+  background: #94a3b8 !important;
   cursor: not-allowed;
 }
 
@@ -470,4 +470,148 @@ body {
 .cart-total h2 {
   margin-bottom: 1rem;
   color: #1e293b;
+}
+
+/* ============================================
+   RESPONSIVE DESIGN - Mobile First
+   ============================================ */
+
+/* Tablet y móviles (max-width: 768px) */
+@media (max-width: 768px) {
+  /* Navbar */
+  .navbar {
+    padding: 1rem;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .navbar-brand h1 {
+    font-size: 1.25rem;
+  }
+
+  .navbar-menu {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.5rem;
+  }
+
+  .navbar-menu button {
+    padding: 0.4rem 0.8rem;
+    font-size: 0.9rem;
+  }
+
+  /* Contenedores */
+  .main-content {
+    padding: 1rem;
+  }
+
+  /* Formularios */
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+
+  /* Catálogo */
+  .catalog-header {
+    flex-direction: column;
+    gap: 1rem;
+    align-items: flex-start;
+  }
+
+  .btn-cart {
+    width: 100%;
+  }
+
+  .search-bar input {
+    max-width: 100%;
+  }
+
+  .products-grid {
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 1rem;
+  }
+
+  /* Tablas */
+  .products-table {
+    overflow-x: auto;
+  }
+
+  /* Modal */
+  .modal {
+    width: 95%;
+    padding: 1.5rem;
+  }
+
+  /* Carrito */
+  .cart-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .cart-item-actions {
+    width: 100%;
+    justify-content: flex-start;
+  }
+}
+
+/* Móviles pequeños (max-width: 480px) */
+@media (max-width: 480px) {
+  /* Navbar */
+  .navbar-brand h1 {
+    font-size: 1.1rem;
+  }
+
+  .navbar-menu {
+    gap: 0.3rem;
+  }
+
+  .navbar-menu button {
+    padding: 0.3rem 0.6rem;
+    font-size: 0.85rem;
+  }
+
+  .cart-count {
+    font-size: 0.65rem;
+    padding: 0.1rem 0.3rem;
+  }
+
+  /* Botones */
+  .btn-primary,
+  .btn-secondary {
+    padding: 0.6rem 1rem;
+    font-size: 0.9rem;
+  }
+
+  .btn-large {
+    font-size: 1rem;
+  }
+
+  /* Auth cards */
+  .auth-card {
+    padding: 1.5rem;
+  }
+
+  /* Productos */
+  .products-grid {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+
+  /* Carrito */
+  .cart-container {
+    padding: 0 0.5rem;
+  }
+
+  .cart-total h2 {
+    font-size: 1.25rem;
+  }
+
+  /* Modal actions */
+  .modal-actions {
+    flex-direction: column;
+  }
+
+  .modal-actions button {
+    width: 100%;
+  }
 }

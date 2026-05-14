@@ -171,6 +171,38 @@ npm test
 
 ---
 
+## Responsive Design
+
+La aplicación es **100% responsive** y se adapta a móviles, tablets y desktop.
+
+**Breakpoints:**
+- `≤768px` — Tablet y móviles (navbar en columna, grid más chico)
+- `≤480px` — Móviles chicos (1 columna, botones más pequeños)
+
+**Componentes adaptativos:**
+- Navbar (se apila verticalmente en móvil)
+- Grid de productos (ajusta columnas automáticamente)
+- Carrito (items en columna en móvil)
+- Formularios (2 columnas → 1 columna)
+
+---
+
+## Testing
+
+```bash
+npm test
+```
+
+**Tests incluidos:**
+- `App.test.js` — Renderizado de la aplicación y navbar
+
+**Cobertura:**
+- Componente App (renderizado inicial)
+- Navbar (logo de EcoSavor)
+- Catálogo (vista por defecto)
+
+---
+
 ## Conexión con el Backend
 
 El frontend se conecta al API Gateway en `http://localhost:3000/api`

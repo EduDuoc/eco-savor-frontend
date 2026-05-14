@@ -42,9 +42,11 @@ export function useGuestCartViewModel() {
     return () => window.removeEventListener('storage', handleStorageChange);
   }, []);
 
-  // Guardar en localStorage cuando cambia el estado
+  // Guardar en localStorage cuando cambia el estado y notificar a otros componentes
   useEffect(() => {
     localStorage.setItem(CART_KEY, JSON.stringify(cartItems));
+    // Disparar evento personalizado para notificar a Navbar y otros componentes
+    window.dispatchEvent(new CustomEvent('cart-changed', { detail: { items: cartItems } }));
   }, [cartItems]);
 
   // Agregar producto al carrito (con validación de stock)

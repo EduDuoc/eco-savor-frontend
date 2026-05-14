@@ -3,9 +3,6 @@ import axios from 'axios';
 // Usar variable de entorno si existe, sino fallback a localhost (desarrollo)
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:3000/api';
 
-// URL directa al orders-service para crear órdenes (workaround para Express 5 + proxy)
-const ORDERS_SERVICE_URL = process.env.REACT_APP_ORDERS_SERVICE_URL || 'http://localhost:3003/api/orders';
-
 const api = axios.create({
   baseURL: API_BASE_URL,
   headers: {

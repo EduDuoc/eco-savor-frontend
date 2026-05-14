@@ -62,6 +62,21 @@ export function CatalogView({ onNavigate }) {
     p.name.toLowerCase().includes(filter.toLowerCase())
   );
 
+  // Agrupar productos por restaurante
+  const productsByRestaurant = filteredProducts.reduce((acc, product) => {
+    const restaurantId = product.restaurantId || 'unknown';
+    const restaurantName = product.restaurantName || 'Sin restaurante';
+    
+    if (!acc[restaurantId]) {
+      acc[restaurantId] = { name: restaurantName, products: [] };
+    }
+    acc[restaurantId].products.push(product);
+    return acc;
+  }, {});
+
+  // Convertir a array para renderizar
+  const restaurantGroups = Object.entries(productsByRestaurant);
+
   return (
     <div className="catalog-container">
       <div className="catalog-header">
@@ -94,22 +109,29 @@ export function CatalogView({ onNavigate }) {
       {loading && <div className="loading">Cargando productos...</div>}
       {error && <div className="error-message">{error}</div>}
 
-      <div className="products-grid">
-        {filteredProducts.map((product) => (
-          <DiscountedProductCard
-            key={product._id || product.id}
-            product={product}
-            onReserve={handleReserve}
-          />
-        ))}
-      </div>
-
-      {filteredProducts.length === 0 && !loading && (
+      {restaurantGroups.length === 0 && !loading ? (
         <p className="no-products">
           {isAuthenticated && user?.role === 'restaurant' 
             ? 'No tenés productos cargados. ¡Creá tu primer producto!' 
             : 'No hay productos disponibles'}
         </p>
+      ) : (
+        <div className="catalog-by-restaurant" style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
+          {restaurantGroups.map(([restaurantId, { name, products: restaurantProducts }]) => (
+            <div key={restaurantId} className="restaurant-section" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <h2 className="restaurant-section__title" style={{ fontSize: '1.5rem', color: '#1e293b', borderBottom: '2px solid #e2e8f0', paddingBottom: '8px' }}>🏪 {name}</h2>
+              <div className="products-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '24px' }}>
+                {restaurantProducts.map((product) => (
+                  <DiscountedProductCard
+                    key={product._id || product.id}
+                    product={product}
+                    onReserve={handleReserve}
+                  />
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
       )}
     </div>
   );
