@@ -1,7 +1,6 @@
 // AdminView - View Layer (MVVM Pattern) - Diseño actualizado 2026
 import React, { useEffect, useState } from 'react';
-import { useProductsViewModel } from '../viewmodels/useProductsViewModel';
-import { useAuthViewModel } from '../viewmodels/useAuthViewModel';
+import { useProductsViewModel, useAuthViewModel } from '../modules/index.js';
 
 export function AdminView() {
   const { products, loadMyProducts, createProduct, updateProduct, deleteProduct, loading, error } = useProductsViewModel();

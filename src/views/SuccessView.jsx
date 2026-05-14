@@ -1,6 +1,6 @@
 // SuccessView - Vista de compra exitosa - Diseño actualizado 2026
 import React from 'react';
-import { useAuthViewModel } from '../viewmodels/useAuthViewModel';
+import { useAuthViewModel } from '../modules/index.js';
 
 export function SuccessView({ onNavigate, orderData }) {
   const { user } = useAuthViewModel();

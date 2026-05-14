@@ -1,8 +1,7 @@
 // RestaurantOrdersView - Vista para que restaurants gestionen SUS órdenes
 // Solo los usuarios con rol 'restaurant' pueden acceder
 import React, { useEffect, useState } from 'react';
-import { useOrdersViewModel } from '../viewmodels/useOrdersViewModel';
-import { useAuthViewModel } from '../viewmodels/useAuthViewModel';
+import { useOrdersViewModel, useAuthViewModel } from '../modules/index.js';
 
 export function RestaurantOrdersView({ onNavigate }) {
   const { orders, getMyOrders, cancelOrder, confirmOrder, markAsPreparing, markAsReady, completeOrder, loading, error } = useOrdersViewModel();

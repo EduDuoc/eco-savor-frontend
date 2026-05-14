@@ -1,7 +1,7 @@
 // CartView - Vista del carrito - Diseño actualizado 2026
 import React, { useState } from 'react';
 import { useGuestCartViewModel } from '../modules/index.js';
-import { useAuthViewModel } from '../viewmodels/useAuthViewModel';
+import { useAuthViewModel } from '../modules/index.js';
 
 export function CartView({ onNavigate, onSuccess }) {
   const {

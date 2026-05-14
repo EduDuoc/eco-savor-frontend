@@ -1,6 +1,6 @@
 // Navbar - Componente de navegación - Diseño actualizado 2026
 import React, { useState, useEffect } from 'react';
-import { useAuthViewModel } from '../viewmodels/useAuthViewModel';
+import { useAuthViewModel } from '../modules/index.js';
 
 const CART_KEY = 'ecosavor_guest_cart';
 

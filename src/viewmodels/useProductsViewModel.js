@@ -7,16 +7,13 @@ export function useProductsViewModel() {
   const { dispatch, state } = useAppContext();
   const [localError, setLocalError] = useState(null);
 
-  // Cargar productos (solo disponibles)
-  const loadProducts = useCallback(async () => {
+  // Función base interna para cargar productos
+  const loadProductsInternal = useCallback(async (endpoint, filterParams = {}) => {
     dispatch({ type: ActionTypes.SET_LOADING, payload: true });
     setLocalError(null);
 
     try {
-      const response = await api.get('/catalog/products', {
-        params: { available: 'true' }
-      });
-
+      const response = await api.get(endpoint, { params: filterParams });
       const data = response.data;
       dispatch({ type: ActionTypes.SET_PRODUCTS, payload: data.data || data.products || data });
       return { success: true };
@@ -30,25 +27,15 @@ export function useProductsViewModel() {
     }
   }, [dispatch]);
 
+  // Cargar productos (solo disponibles)
+  const loadProducts = useCallback(async () => {
+    return loadProductsInternal('/catalog/products', { available: 'true' });
+  }, [loadProductsInternal]);
+
   // Cargar SOLO mis productos (para restaurantes)
   const loadMyProducts = useCallback(async () => {
-    dispatch({ type: ActionTypes.SET_LOADING, payload: true });
-    setLocalError(null);
-
-    try {
-      const response = await api.get('/catalog/my-products');
-      const data = response.data;
-      dispatch({ type: ActionTypes.SET_PRODUCTS, payload: data.data || data.products || data });
-      return { success: true };
-    } catch (error) {
-      const message = error.response?.data?.error || error.message || 'Error al cargar tus productos';
-      setLocalError(message);
-      dispatch({ type: ActionTypes.SET_ERROR, payload: message });
-      return { success: false, error: message };
-    } finally {
-      dispatch({ type: ActionTypes.SET_LOADING, payload: false });
-    }
-  }, [dispatch]);
+    return loadProductsInternal('/catalog/my-products');
+  }, [loadProductsInternal]);
 
   // Crear producto (admin/restaurant)
   // Nota: loadMyProducts está en deps porque usa useCallback y es estable

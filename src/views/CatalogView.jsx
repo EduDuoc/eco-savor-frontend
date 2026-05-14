@@ -2,9 +2,7 @@
 // - Buyers/Invitados: Ven TODOS los productos
 // - Restaurants: Ven SOLO sus propios productos
 import React, { useEffect, useState } from 'react';
-import { useProductsViewModel } from '../viewmodels/useProductsViewModel';
-import { useGuestCartViewModel } from '../viewmodels/useGuestCartViewModel';
-import { useAuthViewModel } from '../viewmodels/useAuthViewModel';
+import { useProductsViewModel, useGuestCartViewModel, useAuthViewModel } from '../modules/index.js';
 import DiscountedProductCard from '../components/DiscountedProductCard';
 
 export function CatalogView({ onNavigate }) {

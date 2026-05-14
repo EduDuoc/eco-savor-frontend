@@ -1,14 +1,12 @@
 // MyOrdersView - View Layer (MVVM Pattern) - Diseño actualizado 2026
-import React, { useEffect, useState } from 'react';
-import { useOrdersViewModel } from '../viewmodels/useOrdersViewModel';
+import React, { useEffect } from 'react';
+import { useOrdersViewModel } from '../modules/index.js';
 
 export function MyOrdersView() {
   const { orders, getMyOrders, cancelOrder, loading, error } = useOrdersViewModel();
-  const [localLoading, setLocalLoading] = useState(false);
 
   useEffect(() => {
     const loadOrders = async () => {
-      setLocalLoading(true);
       try {
         // Timeout de 10 segundos para evitar loading infinito
         const timeoutPromise = new Promise((_, reject) => {
@@ -21,8 +19,6 @@ export function MyOrdersView() {
         await Promise.race([ordersPromise, timeoutPromise]);
       } catch (err) {
         console.error('Error cargando órdenes:', err);
-      } finally {
-        setLocalLoading(false);
       }
     };
     
@@ -80,7 +76,7 @@ export function MyOrdersView() {
     <div className="orders-container">
       <h1>Mis pedidos</h1>
 
-      {(loading || localLoading) && <div className="loading">Cargando órdenes...</div>}
+      {loading && <div className="loading">Cargando órdenes...</div>}
       {error && <div className="error-message">⚠️ {error}</div>}
 
       {(!orders || (Array.isArray(orders) && orders.length === 0)) && !loading ? (
