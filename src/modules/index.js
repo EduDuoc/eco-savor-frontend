@@ -18,6 +18,7 @@ export { RestaurantOrdersView } from '../views/RestaurantOrdersView';
 export { MyOrdersView } from '../views/MyOrdersView';
 export { CartView } from '../views/CartView';
 export { Navbar } from '../views/Navbar';
+export { SuccessView } from '../views/SuccessView';
 
 // Componentes compartidos (reciclados del compañero)
 export { default as DiscountedProductCard } from '../components/DiscountedProductCard';

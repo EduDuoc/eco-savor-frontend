@@ -1,5 +1,4 @@
-// DiscountedProductCard - Componente de producto con descuento (reciclado del compañero)
-// Module Pattern: Exporta como módulo reutilizable
+// DiscountedProductCard - Componente de producto con descuento - Diseño actualizado 2026
 import React from 'react';
 import './DiscountedProductCard.css';
 
@@ -20,6 +19,7 @@ const DiscountedProductCard = ({
     imageUrl,
     images,
     restaurantName,
+    category,
   } = product;
 
   const displayPrice = originalPrice || price || 0;
@@ -28,38 +28,86 @@ const DiscountedProductCard = ({
 
   const discountPct = Math.round(((displayPrice - displayDiscountPrice) / displayPrice) * 100);
   const isLowStock = displayStock <= 5;
-  const isExpiringSoon = expiresAt && (new Date(expiresAt) - new Date() < 3_600_000);
+  
+  // Formatear fecha de vencimiento
+  const formatDate = (dateString) => {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('es-CL', { day: '2-digit', month: '2-digit', year: '2-digit' });
+  };
+  
+  const expiresDate = formatDate(expiresAt);
+  const isExpiringSoon = expiresAt && (new Date(expiresAt) - new Date() < 3_600_000 * 24 * 2);
+
+  // Obtener emoji según categoría o nombre
+  const getEmojiForProduct = () => {
+    const nameLower = name?.toLowerCase() || '';
+    const categoryLower = category?.toLowerCase() || '';
+    
+    if (categoryLower === 'panadería') return '🍞';
+    if (categoryLower === 'bebidas') return '🥤';
+    if (categoryLower === 'postres') return '🍰';
+    if (categoryLower === 'comida caliente') return '🍲';
+    
+    if (nameLower.includes('tomate') || nameLower.includes('manzana') || nameLower.includes('fruta')) return '🍎';
+    if (nameLower.includes('palta') || nameLower.includes('aguacate')) return '🥑';
+    if (nameLower.includes('zanahoria')) return '🥕';
+    if (nameLower.includes('pizza')) return '🍕';
+    if (nameLower.includes('sushi')) return '🍣';
+    if (nameLower.includes('burger') || nameLower.includes('hamburguesa')) return '🍔';
+    if (nameLower.includes('pan')) return '🍞';
+    if (nameLower.includes('ensalada')) return '🥗';
+    
+    return '🥡'; // Default
+  };
+
+  const productEmoji = getEmojiForProduct();
 
   return (
     <article className={`eco-card ${isLowStock ? 'eco-card--low-stock' : ''}`}>
       <div className="eco-card__badge">-{discountPct}%</div>
-      {imageUrl && <img src={imageUrl} alt={name} className="eco-card__image" loading="lazy" />}
+      
+      <div className="eco-card__image-wrapper">
+        {imageUrl ? (
+          <img src={imageUrl} alt={name} className="eco-card__image" loading="lazy" />
+        ) : (
+          <span className="eco-card__emoji">{productEmoji}</span>
+        )}
+      </div>
+      
       <div className="eco-card__body">
         <h3 className="eco-card__name">{name}</h3>
-        {restaurantName && (
-          <p className="eco-card__restaurant">
-            🏪 {restaurantName}
-          </p>
-        )}
+        
         <div className="eco-card__pricing">
-          <span className="eco-card__original">${displayPrice.toFixed(2)}</span>
-          <span className="eco-card__discounted">${displayDiscountPrice.toFixed(2)}</span>
+          <span className="eco-card__original">${displayPrice.toLocaleString('es-CL')}</span>
+          <span className="eco-card__discounted">${displayDiscountPrice.toLocaleString('es-CL')}</span>
         </div>
+        
+        {restaurantName && (
+          <span className="eco-card__store">
+            {restaurantName}
+          </span>
+        )}
+        
         <div className="eco-card__meta">
           <span className={`eco-card__stock ${isLowStock ? 'eco-card__stock--critical' : ''}`}>
-            {isLowStock ? `⚠ Solo ${displayStock} restantes` : `${displayStock} disponibles`}
+            Stock: {displayStock}
           </span>
-          {isExpiringSoon && <span className="eco-card__expires">Expira pronto!</span>}
+          {expiresDate && (
+            <span className={`eco-card__expires ${isExpiringSoon ? 'eco-card__expires--urgent' : ''}`}>
+              Vence: {expiresDate}
+            </span>
+          )}
         </div>
+        
+        <button
+          className="eco-card__cta"
+          onClick={() => onReserve?.(product)}
+          disabled={isLoading || displayStock === 0}
+        >
+          + Agregar
+        </button>
       </div>
-      <button
-        className="eco-card__cta"
-        onClick={() => onReserve?.(product)}
-        disabled={isLoading || displayStock === 0}
-        aria-label={`Reservar ${name}`}
-      >
-        {isLoading ? 'Reservando...' : displayStock === 0 ? 'Agotado' : 'Reservar ahora'}
-      </button>
     </article>
   );
 };

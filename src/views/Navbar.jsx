@@ -1,4 +1,4 @@
-// Navbar - Componente de navegación actualizado
+// Navbar - Componente de navegación - Diseño actualizado 2026
 import React, { useState, useEffect } from 'react';
 import { useAuthViewModel } from '../viewmodels/useAuthViewModel';
 
@@ -49,7 +49,8 @@ export function Navbar({ currentView, onNavigate }) {
   return (
     <nav className="navbar">
       <div className="navbar-brand">
-        <h1>🥡 EcoSavor</h1>
+        <span className="navbar-brand-logo">🌿</span>
+        <h1>EcoSavor</h1>
       </div>
       <div className="navbar-menu">
         {isAuthenticated ? (
@@ -66,13 +67,13 @@ export function Navbar({ currentView, onNavigate }) {
                   onClick={() => onNavigate('admin')}
                   className={currentView === 'admin' ? 'active' : ''}
                 >
-                  Gestionar Productos
+                  Gestionar productos
                 </button>
                 <button
                   onClick={() => onNavigate('restaurant-orders')}
                   className={currentView === 'restaurant-orders' ? 'active' : ''}
                 >
-                  Gestionar Órdenes
+                  Gestionar órdenes
                 </button>
               </>
             ) : (
@@ -80,14 +81,14 @@ export function Navbar({ currentView, onNavigate }) {
                 onClick={() => onNavigate('orders')}
                 className={currentView === 'orders' ? 'active' : ''}
               >
-                Mis Órdenes
+                Mis pedidos
               </button>
             )}
             <button
               onClick={() => onNavigate('cart')}
               className="cart-button"
             >
-              🛒 Carrito {itemCount > 0 && <span className="cart-count">({itemCount})</span>}
+              🛒 Carrito {itemCount > 0 && <span className="cart-count">{itemCount}</span>}
             </button>
             <div className="user-info">
               <span>Hola, {user?.name || user?.email || 'Usuario'}</span>
@@ -106,10 +107,8 @@ export function Navbar({ currentView, onNavigate }) {
               onClick={() => onNavigate('cart')}
               className="cart-button"
             >
-              🛒 Carrito {itemCount > 0 && <span className="cart-count">({itemCount})</span>}
+              🛒 Carrito {itemCount > 0 && <span className="cart-count">{itemCount}</span>}
             </button>
-            <button onClick={() => onNavigate('login')}>Iniciar Sesión</button>
-            <button onClick={() => onNavigate('register')} className="btn-primary">Registrarse</button>
           </>
         )}
       </div>

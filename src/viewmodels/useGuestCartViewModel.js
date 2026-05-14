@@ -241,7 +241,10 @@ export function useGuestCartViewModel() {
       if (result.success) {
         console.log('🛒 Checkout - Orden creada con éxito');
         clearCart();
-        onNavigate?.('orders');
+        // Navegar a la vista de éxito con los datos de la orden
+        if (onNavigate) {
+          onNavigate('success');
+        }
         return { success: true, data: result.data };
       } else {
         console.error('🛒 Checkout - Error al crear orden:', result.error);

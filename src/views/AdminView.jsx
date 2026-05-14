@@ -1,10 +1,10 @@
-// AdminView - View Layer (MVVM Pattern) - Vista de administrador (restaurantes)
+// AdminView - View Layer (MVVM Pattern) - Diseño actualizado 2026
 import React, { useEffect, useState } from 'react';
 import { useProductsViewModel } from '../viewmodels/useProductsViewModel';
 import { useAuthViewModel } from '../viewmodels/useAuthViewModel';
 
 export function AdminView() {
-  const { products, loadProducts, loadMyProducts, createProduct, updateProduct, deleteProduct, loading, error } = useProductsViewModel();
+  const { products, loadMyProducts, createProduct, updateProduct, deleteProduct, loading, error } = useProductsViewModel();
   const { user } = useAuthViewModel();
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
@@ -44,7 +44,6 @@ export function AdminView() {
       category: formData.category,
       expiresAt: new Date(formData.expiresAt),
       images: formData.imageUrl ? [formData.imageUrl] : [],
-      // NO enviar restaurantId ni restaurantName - el backend lo asigna automáticamente desde el token
     };
 
     let result;
@@ -58,9 +57,9 @@ export function AdminView() {
       setIsFormOpen(false);
       setEditingProduct(null);
       resetForm();
-      alert('Producto creado exitosamente');
+      alert('✅ Producto creado exitosamente');
     } else {
-      alert('Error: ' + result.error);
+      alert('❌ Error: ' + result.error);
     }
   };
 
@@ -101,157 +100,167 @@ export function AdminView() {
     }
   };
 
+  const getEmojiForProduct = (product) => {
+    const nameLower = product.name?.toLowerCase() || '';
+    const categoryLower = product.category?.toLowerCase() || '';
+    
+    if (categoryLower === 'panadería') return '🍞';
+    if (categoryLower === 'bebidas') return '🥤';
+    if (categoryLower === 'postres') return '🍰';
+    if (categoryLower === 'comida caliente') return '🍲';
+    
+    if (nameLower.includes('tomate')) return '🍅';
+    if (nameLower.includes('palta')) return '🥑';
+    if (nameLower.includes('manzana')) return '🍎';
+    if (nameLower.includes('zanahoria')) return '🥕';
+    if (nameLower.includes('pizza')) return '🍕';
+    if (nameLower.includes('sushi')) return '🍣';
+    if (nameLower.includes('burger')) return '🍔';
+    
+    return '🥡';
+  };
+
   return (
     <div className="admin-container">
-      <div className="admin-header">
-        <h1>Gestión de Productos</h1>
-        <button onClick={() => setIsFormOpen(true)} className="btn-primary">
-          + Nuevo Producto
-        </button>
-      </div>
+      <h1>Gestión de productos</h1>
 
       {loading && <div className="loading">Cargando...</div>}
       {error && <div className="error-message">{error}</div>}
       
-      {products.length === 0 && !loading && (
-        <div className="empty-state">
-          <p>No tenés productos cargados todavía</p>
-          <button onClick={() => setIsFormOpen(true)} className="btn-primary">
-            + Crear tu primer producto
-          </button>
+      <div className="admin-layout">
+        {/* Formulario */}
+        <div className="admin-form-card">
+          <h2>➕ Agregar producto</h2>
+          <form onSubmit={handleSubmit}>
+            <div className="form-group">
+              <label>Nombre</label>
+              <input
+                type="text"
+                value={formData.name}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                required
+                placeholder="Ej: Pack Pizza Hut"
+              />
+            </div>
+            <div className="form-group">
+              <label>Comercio</label>
+              <input
+                type="text"
+                value={formData.restaurantName || ''}
+                onChange={(e) => setFormData({ ...formData, restaurantName: e.target.value })}
+                placeholder="Ej: Pizza Hut"
+              />
+            </div>
+            <div className="form-group">
+              <label>Precio original ($)</label>
+              <input
+                type="number"
+                value={formData.price}
+                onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                required
+                placeholder="24990"
+              />
+            </div>
+            <div className="form-group">
+              <label>Precio con descuento ($)</label>
+              <input
+                type="number"
+                value={formData.discountPrice}
+                onChange={(e) => setFormData({ ...formData, discountPrice: e.target.value })}
+                required
+                placeholder="14990"
+              />
+            </div>
+            <div className="form-group">
+              <label>Stock</label>
+              <input
+                type="number"
+                value={formData.quantity}
+                onChange={(e) => setFormData({ ...formData, quantity: e.target.value })}
+                required
+                placeholder="10"
+              />
+            </div>
+            <div className="form-group">
+              <label>Categoría</label>
+              <select
+                value={formData.category}
+                onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+              >
+                <option value="panadería">Panadería</option>
+                <option value="comida caliente">Comida Caliente</option>
+                <option value="bebidas">Bebidas</option>
+                <option value="postres">Postres</option>
+                <option value="otros">Otros</option>
+              </select>
+            </div>
+            <div className="form-group">
+              <label>Fecha de Vencimiento</label>
+              <input
+                type="date"
+                value={formData.expiresAt}
+                onChange={(e) => setFormData({ ...formData, expiresAt: e.target.value })}
+                required
+              />
+            </div>
+            <div className="form-group">
+              <label>URL de Imagen (opcional)</label>
+              <input
+                type="url"
+                value={formData.imageUrl}
+                onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
+                placeholder="https://..."
+              />
+            </div>
+            <button 
+              type="submit" 
+              disabled={loading} 
+              className="btn-primary"
+              style={{ marginTop: '1rem' }}
+            >
+              {loading ? 'Guardando...' : editingProduct ? 'Actualizar' : 'Crear Producto'}
+            </button>
+          </form>
         </div>
-      )}
 
-      {/* Formulario Modal */}
-      {isFormOpen && (
-        <div className="modal-overlay">
-          <div className="modal">
-            <h2>{editingProduct ? 'Editar Producto' : 'Nuevo Producto'}</h2>
-            <form onSubmit={handleSubmit}>
-              <div className="form-group">
-                <label>Nombre:</label>
-                <input
-                  type="text"
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  required
-                />
-              </div>
-              <div className="form-group">
-                <label>Descripción:</label>
-                <textarea
-                  value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  required
-                />
-              </div>
-              <div className="form-row">
-                <div className="form-group">
-                  <label>Precio Original:</label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    value={formData.price}
-                    onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-                    required
-                  />
-                </div>
-                <div className="form-group">
-                  <label>Precio con Descuento:</label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    value={formData.discountPrice}
-                    onChange={(e) => setFormData({ ...formData, discountPrice: e.target.value })}
-                    required
-                  />
-                </div>
-              </div>
-              <div className="form-row">
-                <div className="form-group">
-                  <label>Stock/Cantidad:</label>
-                  <input
-                    type="number"
-                    value={formData.quantity}
-                    onChange={(e) => setFormData({ ...formData, quantity: e.target.value })}
-                    required
-                  />
-                </div>
-                <div className="form-group">
-                  <label>Categoría:</label>
-                  <select
-                    value={formData.category}
-                    onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                  >
-                    <option value="panadería">Panadería</option>
-                    <option value="comida caliente">Comida Caliente</option>
-                    <option value="bebidas">Bebidas</option>
-                    <option value="postres">Postres</option>
-                    <option value="otros">Otros</option>
-                  </select>
-                </div>
-              </div>
-              <div className="form-group">
-                <label>Fecha de Vencimiento:</label>
-                <input
-                  type="date"
-                  value={formData.expiresAt}
-                  onChange={(e) => setFormData({ ...formData, expiresAt: e.target.value })}
-                  required
-                />
-              </div>
-              <div className="form-group">
-                <label>URL de Imagen:</label>
-                <input
-                  type="url"
-                  value={formData.imageUrl}
-                  onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
-                  placeholder="https://..."
-                />
-              </div>
-              <div className="modal-actions">
-                <button type="button" onClick={() => setIsFormOpen(false)} className="btn-secondary">
-                  Cancelar
-                </button>
-                <button type="submit" disabled={loading} className="btn-primary">
-                  {loading ? 'Guardando...' : editingProduct ? 'Actualizar' : 'Crear'}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+        {/* Lista de productos */}
+        <div className="admin-products-list">
+          <h2>Productos existentes</h2>
+          
+          {products.length === 0 && !loading && (
+            <div className="empty-state">
+              <p>No tenés productos cargados todavía</p>
+            </div>
+          )}
 
-      {/* Tabla de productos */}
-      <table className="products-table">
-        <thead>
-          <tr>
-            <th>Nombre</th>
-            <th>Precio</th>
-            <th>Stock</th>
-            <th>Categoría</th>
-            <th>Vencimiento</th>
-            <th>Acciones</th>
-          </tr>
-        </thead>
-        <tbody>
           {products.map((product) => (
-            <tr key={product._id || product.id}>
-              <td>{product.name}</td>
-              <td>${product.discountPrice || product.discountedPrice}</td>
-              <td>{product.quantity || product.stock}</td>
-              <td>{product.category}</td>
-              <td>{new Date(product.expiresAt).toLocaleDateString()}</td>
-              <td>
-                <button onClick={() => handleEdit(product)} className="btn-small">Editar</button>
-                <button onClick={() => handleDelete(product._id || product.id)} className="btn-small btn-danger">
-                  Eliminar
-                </button>
-              </td>
-            </tr>
+            <div key={product._id || product.id} className="product-card">
+              <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+                <span style={{ fontSize: '3rem' }}>{getEmojiForProduct(product)}</span>
+                <div className="product-card-info">
+                  <h3>{product.name}</h3>
+                  <p>{product.restaurantName || 'Sin restaurante'}</p>
+                  <div className="product-card-price">
+                    <span className="original">${(product.price || product.originalPrice)?.toLocaleString('es-CL')}</span>
+                    <span className="discounted">${(product.discountPrice || product.discountedPrice)?.toLocaleString('es-CL')}</span>
+                  </div>
+                </div>
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', alignItems: 'flex-end' }}>
+                <span className="product-card-stock">Stock: {product.quantity || product.stock}</span>
+                <div className="product-card-actions">
+                  <button onClick={() => handleEdit(product)} className="btn-edit">
+                    ✏️ Editar
+                  </button>
+                  <button onClick={() => handleDelete(product._id || product.id)} className="btn-delete">
+                    🗑️ Eliminar
+                  </button>
+                </div>
+              </div>
+            </div>
           ))}
-        </tbody>
-      </table>
+        </div>
+      </div>
     </div>
   );
 }
