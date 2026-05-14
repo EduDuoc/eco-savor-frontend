@@ -80,7 +80,13 @@ export function useGuestCartViewModel() {
           quantity: (updated[existingIndex].quantity || 1) + 1
         };
       } else {
-        updated = [...prev, { ...product, quantity: 1 }];
+        // Normalizar discountPrice → discountedPrice para consistencia con el frontend
+        const { discountPrice, ...rest } = product;
+        updated = [...prev, { 
+          ...rest, 
+          discountedPrice: discountPrice,  // Normalizar nombre del campo
+          quantity: 1 
+        }];
       }
       
       return updated;
@@ -124,8 +130,10 @@ export function useGuestCartViewModel() {
     return { success: true };
   }, [removeFromCart]);
 
-  // Limpiar carrito
+  // Limpiar carrito (sincronizar inmediatamente con localStorage)
   const clearCart = useCallback(() => {
+    localStorage.removeItem(CART_KEY);
+    window.dispatchEvent(new CustomEvent('cart-changed', { detail: { items: [] } }));
     setCartItems([]);
   }, []);
 
@@ -190,7 +198,7 @@ export function useGuestCartViewModel() {
       items: cartItems.map(item => ({
         productId: item._id || item.id,
         name: item.name,
-        price: item.price || item.originalPrice,
+        price: item.discountedPrice || item.price || 0,
         quantity: item.quantity || 1,
         restaurantId: item.restaurantId,
         restaurantName: item.restaurantName
