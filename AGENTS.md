@@ -92,7 +92,7 @@ src/
 
 ## Known Quirks
 
-- **No environment variable support** — API URL is hardcoded. Changing it requires editing `src/services/api.js`.
+- **API URL:** Uses `process.env.REACT_APP_API_BASE_URL` (with `localhost:3000/api` fallback). Set via `.env` in CRA. See `.env.example`.
 - **No React Router** — navigation is state-based (`currentView`), not URL-based.
 - **Test file is stale** — `App.test.js` looks for "learn react" text which doesn't exist.
 - **No TypeScript** — plain JavaScript.
