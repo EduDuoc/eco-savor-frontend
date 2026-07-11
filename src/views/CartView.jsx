@@ -1,7 +1,7 @@
 // CartView - Vista del carrito - Diseño actualizado 2026
 import React, { useState } from 'react';
-import { useGuestCartViewModel } from '../modules/index.js';
-import { useAuthViewModel } from '../modules/index.js';
+import { useGuestCartViewModel, useAuthViewModel } from '../modules/index.js';
+import { getEmojiForProduct } from '../utils/productDisplay';
 
 export function CartView({ onNavigate, onSuccess }) {
   const {
@@ -61,21 +61,6 @@ export function CartView({ onNavigate, onSuccess }) {
     }
   };
 
-  const getEmojiForProduct = (item) => {
-    const nameLower = item.name?.toLowerCase() || '';
-    
-    if (nameLower.includes('palta') || nameLower.includes('aguacate')) return '🥑';
-    if (nameLower.includes('tomate')) return '🍅';
-    if (nameLower.includes('manzana')) return '🍎';
-    if (nameLower.includes('zanahoria')) return '🥕';
-    if (nameLower.includes('pizza')) return '🍕';
-    if (nameLower.includes('sushi')) return '🍣';
-    if (nameLower.includes('burger') || nameLower.includes('hamburguesa')) return '🍔';
-    if (nameLower.includes('pan')) return '🍞';
-    
-    return '🥡';
-  };
-
   return (
     <div className="cart-container">
       <h1>Tu carrito</h1>
@@ -84,7 +69,7 @@ export function CartView({ onNavigate, onSuccess }) {
         {displayItems.map((item) => (
           <div key={item._id || item.id} className="cart-item">
             <div className="cart-item-info">
-              <span className="cart-item-emoji">{getEmojiForProduct(item)}</span>
+              <span className="cart-item-emoji">{getEmojiForProduct(item.name)}</span>
               <div>
                 <h3>{item.name}</h3>
                 <p className="cart-item-price">${(item.discountedPrice || item.price).toLocaleString('es-CL')} c/u</p>

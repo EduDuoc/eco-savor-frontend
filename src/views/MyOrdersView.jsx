@@ -1,28 +1,34 @@
 // MyOrdersView - View Layer (MVVM Pattern) - Diseño actualizado 2026
 import React, { useEffect } from 'react';
 import { useOrdersViewModel } from '../modules/index.js';
+import { StatusBadge } from '../components/StatusBadge';
+import { getEmojiForProduct } from '../utils/productDisplay';
 
 export function MyOrdersView() {
   const { orders, getMyOrders, cancelOrder, loading, error } = useOrdersViewModel();
 
   useEffect(() => {
+    // Timeout de 10 segundos con AbortController: cancela de verdad el
+    // request de axios subyacente en vez de sólo "abandonarlo".
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000);
+
     const loadOrders = async () => {
       try {
-        // Timeout de 10 segundos para evitar loading infinito
-        const timeoutPromise = new Promise((_, reject) => {
-          setTimeout(() => reject(new Error('Timeout al cargar órdenes')), 10000);
-        });
-        
-        const ordersPromise = getMyOrders();
-        
-        // Race entre el timeout y la carga real
-        await Promise.race([ordersPromise, timeoutPromise]);
+        await getMyOrders({ signal: controller.signal });
       } catch (err) {
         console.error('Error cargando órdenes:', err);
+      } finally {
+        clearTimeout(timeoutId);
       }
     };
-    
+
     loadOrders();
+
+    return () => {
+      clearTimeout(timeoutId);
+      controller.abort();
+    };
   }, [getMyOrders]);
 
   const handleCancel = async (orderId) => {
@@ -34,42 +40,6 @@ export function MyOrdersView() {
         alert('Error al cancelar: ' + result.error);
       }
     }
-  };
-
-  const getStatusBadge = (status) => {
-    const colors = {
-      pending: '#f59e0b',
-      confirmed: '#3b82f6',
-      preparing: '#8b5cf6',
-      ready: '#10b981',
-      completed: '#059669',
-      cancelled: '#ef4444',
-    };
-    return (
-      <span style={{ 
-        background: colors[status], 
-        color: '#fff', 
-        padding: '4px 12px', 
-        borderRadius: '99px', 
-        fontSize: '0.8rem',
-        fontWeight: '600'
-      }}>
-        {status}
-      </span>
-    );
-  };
-
-  const getEmojiForProduct = (name) => {
-    const nameLower = name?.toLowerCase() || '';
-    
-    if (nameLower.includes('palta')) return '🥑';
-    if (nameLower.includes('tomate')) return '🍅';
-    if (nameLower.includes('manzana')) return '🍎';
-    if (nameLower.includes('pizza')) return '🍕';
-    if (nameLower.includes('sushi')) return '🍣';
-    if (nameLower.includes('burger')) return '🍔';
-    
-    return '🥡';
   };
 
   return (
@@ -91,7 +61,7 @@ export function MyOrdersView() {
             <div key={order._id || order.id} className="order-card">
               <div className="order-header">
                 <h3>Pedido #{(order._id || order.id)?.slice(-6)}</h3>
-                {getStatusBadge(order.status)}
+                <StatusBadge status={order.status} />
               </div>
               <div className="order-body">
                 {/* Lista de items */}

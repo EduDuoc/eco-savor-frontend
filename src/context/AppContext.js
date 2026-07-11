@@ -7,7 +7,11 @@ const initialState = {
   token: null,          // JWT token
   products: [],         // Lista de productos
   orders: [],           // Órdenes del usuario
-  loading: false,       // Estado de carga
+  loading: {            // Estado de carga por dominio (evita que 3 viewmodels compartan un booleano)
+    auth: false,
+    products: false,
+    orders: false,
+  },
   error: null,          // Error actual
 };
 
@@ -30,7 +34,14 @@ function appReducer(state, action) {
     case ActionTypes.SET_USER:
       return { ...state, user: action.payload.user, token: action.payload.token };
     case ActionTypes.LOGOUT:
-      return { ...state, user: null, token: null };
+      return {
+        ...state,
+        user: null,
+        token: null,
+        orders: initialState.orders,
+        products: initialState.products,
+        error: initialState.error,
+      };
     case ActionTypes.SET_PRODUCTS:
       return { ...state, products: action.payload };
     case ActionTypes.SET_ORDERS:
@@ -45,7 +56,10 @@ function appReducer(state, action) {
         )
       };
     case ActionTypes.SET_LOADING:
-      return { ...state, loading: action.payload };
+      return {
+        ...state,
+        loading: { ...state.loading, [action.payload.domain]: action.payload.value },
+      };
     case ActionTypes.SET_ERROR:
       return { ...state, error: action.payload };
     case ActionTypes.CLEAR_ERROR:
@@ -76,4 +90,4 @@ export function useAppContext() {
   return context;
 }
 
-export { AppContext, initialState, ActionTypes };
+export { AppContext, initialState, ActionTypes, appReducer };

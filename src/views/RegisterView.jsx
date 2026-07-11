@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { useAuthViewModel } from '../modules/index.js';
 import { AuthFooter } from '../components/AuthFooter';
+import { AuthHeader } from '../components/AuthHeader';
 
 export function RegisterView({ onNavigate }) {
   const { register, loading, error } = useAuthViewModel();
@@ -25,15 +26,7 @@ export function RegisterView({ onNavigate }) {
 
   return (
     <div className="login-page">
-      {/* Header */}
-      <div className="login-header">
-        <div className="login-header-logo">🌿</div>
-        <h1>EcoSavor</h1>
-        <p className="login-header-tagline">¿Tienes hambre? Compra, ahorra y ayuda al planeta 🌱</p>
-        <p className="login-header-quote">
-          "Cada producto que salvas es un paso hacia un planeta más limpio 🌍"
-        </p>
-      </div>
+      <AuthHeader />
 
       {/* Formulario de Registro */}
       <div className="login-container">

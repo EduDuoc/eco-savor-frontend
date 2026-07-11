@@ -2,6 +2,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import { useAppContext, ActionTypes } from '../context/AppContext';
 import api from '../services/api';
+import { getErrorMessage } from '../utils/errors';
 
 export function useAuthViewModel() {
   const { dispatch, state } = useAppContext();
@@ -16,8 +17,15 @@ export function useAuthViewModel() {
         const base64Url = token.split('.')[1];
         const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
         const payload = JSON.parse(atob(base64));
-        
-      const userData = { 
+
+        // Validar expiración del token (evita restaurar sesiones "zombie")
+        if (payload.exp && payload.exp * 1000 < Date.now()) {
+          console.warn('Token vencido, no se restaura la sesión');
+          localStorage.removeItem('token');
+          return;
+        }
+
+      const userData = {
         id: payload.sub, 
         email: payload.email, 
         role: payload.role,
@@ -42,7 +50,7 @@ export function useAuthViewModel() {
 
   // Login
   const login = useCallback(async (email, password) => {
-    dispatch({ type: ActionTypes.SET_LOADING, payload: true });
+    dispatch({ type: ActionTypes.SET_LOADING, payload: { domain: 'auth', value: true } });
     setLocalError(null);
 
     try {
@@ -65,18 +73,18 @@ export function useAuthViewModel() {
 
       return { success: true };
     } catch (error) {
-      const message = error.response?.data?.error || error.message || 'Error al iniciar sesión';
+      const message = getErrorMessage(error, 'Error al iniciar sesión');
       setLocalError(message);
       dispatch({ type: ActionTypes.SET_ERROR, payload: message });
       return { success: false, error: message };
     } finally {
-      dispatch({ type: ActionTypes.SET_LOADING, payload: false });
+      dispatch({ type: ActionTypes.SET_LOADING, payload: { domain: 'auth', value: false } });
     }
   }, [dispatch]);
 
   // Registro
   const register = useCallback(async (userData) => {
-    dispatch({ type: ActionTypes.SET_LOADING, payload: true });
+    dispatch({ type: ActionTypes.SET_LOADING, payload: { domain: 'auth', value: true } });
     setLocalError(null);
 
     try {
@@ -85,12 +93,12 @@ export function useAuthViewModel() {
 
       return { success: true, data: data.data };
     } catch (error) {
-      const message = error.response?.data?.error || error.message || 'Error al registrar';
+      const message = getErrorMessage(error, 'Error al registrar');
       setLocalError(message);
       dispatch({ type: ActionTypes.SET_ERROR, payload: message });
       return { success: false, error: message };
     } finally {
-      dispatch({ type: ActionTypes.SET_LOADING, payload: false });
+      dispatch({ type: ActionTypes.SET_LOADING, payload: { domain: 'auth', value: false } });
     }
   }, [dispatch]);
 
@@ -106,7 +114,7 @@ export function useAuthViewModel() {
 
   return {
     // Estado
-    loading: state.loading,
+    loading: state.loading.auth,
     error: localError || state.error,
     user,
     isAuthenticated,

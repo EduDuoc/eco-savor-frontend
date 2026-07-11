@@ -2,11 +2,11 @@
 import React, { useState } from 'react';
 import { useAuthViewModel } from '../modules/index.js';
 import { AuthFooter } from '../components/AuthFooter';
+import { AuthHeader } from '../components/AuthHeader';
 
 export function LoginView({ onNavigate }) {
   const { login, loading, error } = useAuthViewModel();
   const [formData, setFormData] = useState({ email: '', password: '' });
-  const [selectedRole, setSelectedRole] = useState('buyer'); // 'buyer' o 'admin'
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -23,37 +23,11 @@ export function LoginView({ onNavigate }) {
 
   return (
     <div className="login-page">
-      {/* Header */}
-      <div className="login-header">
-        <div className="login-header-logo">🌿</div>
-        <h1>EcoSavor</h1>
-        <p className="login-header-tagline">¿Tienes hambre? Compra, ahorra y ayuda al planeta 🌱</p>
-        <p className="login-header-quote">
-          "Cada producto que salvas es un paso hacia un planeta más limpio 🌍"
-        </p>
-      </div>
+      <AuthHeader />
 
       {/* Formulario */}
       <div className="login-container">
         <div className="login-card">
-          {/* Selector de rol */}
-          <div className="login-role-selector">
-            <button
-              type="button"
-              className={`role-btn ${selectedRole === 'buyer' ? 'active' : ''}`}
-              onClick={() => setSelectedRole('buyer')}
-            >
-              🛒 Comprador
-            </button>
-            <button
-              type="button"
-              className={`role-btn ${selectedRole === 'admin' ? 'active' : ''}`}
-              onClick={() => setSelectedRole('admin')}
-            >
-              ⚙️ Administrador
-            </button>
-          </div>
-
           <form onSubmit={handleSubmit}>
             <div className="form-group">
               <label>Email</label>

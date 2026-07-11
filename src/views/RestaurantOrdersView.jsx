@@ -2,6 +2,16 @@
 // Solo los usuarios con rol 'restaurant' pueden acceder
 import React, { useEffect, useState } from 'react';
 import { useOrdersViewModel, useAuthViewModel } from '../modules/index.js';
+import { StatusBadge } from '../components/StatusBadge';
+
+const STATUS_FILTERS = [
+  { status: 'all', color: '#3b82f6', label: 'Todas' },
+  { status: 'pending', color: '#f59e0b', label: 'Pendientes' },
+  { status: 'confirmed', color: '#3b82f6', label: 'Confirmadas' },
+  { status: 'preparing', color: '#8b5cf6', label: 'En Preparación' },
+  { status: 'ready', color: '#10b981', label: 'Listas' },
+  { status: 'completed', color: '#059669', label: 'Completadas' },
+];
 
 export function RestaurantOrdersView({ onNavigate }) {
   const { orders, getMyOrders, cancelOrder, confirmOrder, markAsPreparing, markAsReady, completeOrder, loading, error } = useOrdersViewModel();
@@ -63,38 +73,6 @@ export function RestaurantOrdersView({ onNavigate }) {
     }
   };
 
-  const getStatusBadge = (status) => {
-    const colors = {
-      pending: '#f59e0b',      // Amarillo
-      confirmed: '#3b82f6',    // Azul
-      preparing: '#8b5cf6',    // Violeta
-      ready: '#10b981',        // Verde claro
-      completed: '#059669',    // Verde oscuro
-      cancelled: '#ef4444',    // Rojo
-    };
-    const labels = {
-      pending: 'Pendiente',
-      confirmed: 'Confirmada',
-      preparing: 'En Preparación',
-      ready: 'Lista para Retirar',
-      completed: 'Completada',
-      cancelled: 'Cancelada',
-    };
-    return (
-      <span style={{ 
-        background: colors[status] || '#6b7280', 
-        color: '#fff', 
-        padding: '4px 12px', 
-        borderRadius: '12px', 
-        fontSize: '0.75rem',
-        fontWeight: 'bold',
-        textTransform: 'uppercase'
-      }}>
-        {labels[status] || status}
-      </span>
-    );
-  };
-
   // Validar que orders sea un array antes de operar
   const ordersArray = Array.isArray(orders) ? orders : [];
   
@@ -128,90 +106,27 @@ export function RestaurantOrdersView({ onNavigate }) {
         marginBottom: '20px',
         flexWrap: 'wrap'
       }}>
-        <button 
-          onClick={() => setFilterStatus('all')}
-          style={{
-            padding: '8px 16px',
-            border: 'none',
-            borderRadius: '8px',
-            background: filterStatus === 'all' ? '#3b82f6' : '#e5e7eb',
-            color: filterStatus === 'all' ? '#fff' : '#374151',
-            cursor: 'pointer',
-            fontWeight: 'bold'
-          }}
-        >
-          Todas ({ordersArray.length})
-        </button>
-        <button 
-          onClick={() => setFilterStatus('pending')}
-          style={{
-            padding: '8px 16px',
-            border: 'none',
-            borderRadius: '8px',
-            background: filterStatus === 'pending' ? '#f59e0b' : '#e5e7eb',
-            color: '#fff',
-            cursor: 'pointer',
-            fontWeight: 'bold'
-          }}
-        >
-          Pendientes ({statusCounts.pending || 0})
-        </button>
-        <button 
-          onClick={() => setFilterStatus('confirmed')}
-          style={{
-            padding: '8px 16px',
-            border: 'none',
-            borderRadius: '8px',
-            background: filterStatus === 'confirmed' ? '#3b82f6' : '#e5e7eb',
-            color: '#fff',
-            cursor: 'pointer',
-            fontWeight: 'bold'
-          }}
-        >
-          Confirmadas ({statusCounts.confirmed || 0})
-        </button>
-        <button 
-          onClick={() => setFilterStatus('preparing')}
-          style={{
-            padding: '8px 16px',
-            border: 'none',
-            borderRadius: '8px',
-            background: filterStatus === 'preparing' ? '#8b5cf6' : '#e5e7eb',
-            color: '#fff',
-            cursor: 'pointer',
-            fontWeight: 'bold'
-          }}
-        >
-          En Preparación ({statusCounts.preparing || 0})
-        </button>
-        <button 
-          onClick={() => setFilterStatus('ready')}
-          style={{
-            padding: '8px 16px',
-            border: 'none',
-            borderRadius: '8px',
-            background: filterStatus === 'ready' ? '#10b981' : '#e5e7eb',
-            color: '#fff',
-            cursor: 'pointer',
-            fontWeight: 'bold'
-          }}
-        >
-          Listas ({statusCounts.ready || 0})
-        </button>
-        <button 
-          onClick={() => setFilterStatus('completed')}
-          style={{
-            padding: '8px 16px',
-            border: 'none',
-            borderRadius: '8px',
-            background: filterStatus === 'completed' ? '#059669' : '#e5e7eb',
-            color: '#fff',
-            cursor: 'pointer',
-            fontWeight: 'bold'
-          }}
-        >
-          Completadas ({statusCounts.completed || 0})
-        </button>
+        {STATUS_FILTERS.map(({ status, color, label }) => {
+          const isActive = filterStatus === status;
+          const count = status === 'all' ? ordersArray.length : (statusCounts[status] || 0);
+          return (
+            <button
+              key={status}
+              onClick={() => setFilterStatus(status)}
+              style={{
+                padding: '8px 16px',
+                border: 'none',
+                borderRadius: '8px',
+                background: isActive ? color : '#e5e7eb',
+                color: status === 'all' ? (isActive ? '#fff' : '#374151') : '#fff',
+                cursor: 'pointer',
+                fontWeight: 'bold'
+              }}
+            >
+              {label} ({count})
+            </button>
+          );
+        })}
       </div>
 
       {loading && <div className="loading" style={{ textAlign: 'center', padding: '40px' }}>Cargando órdenes...</div>}
@@ -235,7 +150,7 @@ export function RestaurantOrdersView({ onNavigate }) {
               borderBottom: '1px solid #e5e7eb'
             }}>
               <h3 style={{ margin: 0 }}>Orden #{order._id?.slice(-6)}</h3>
-              {getStatusBadge(order.status)}
+              <StatusBadge status={order.status} showLabel />
             </div>
             
             <div className="order-body" style={{ marginBottom: '16px' }}>

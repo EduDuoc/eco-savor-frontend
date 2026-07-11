@@ -3,39 +3,7 @@
  * Verifica el reducer y el estado inicial sin necesidad de montar componentes React.
  */
 
-import { initialState, ActionTypes } from '../context/AppContext';
-
-// Importamos el reducer directamente (no se exporta, así que lo replicamos para test)
-// Es la misma lógica que está en AppContext.js
-function appReducer(state, action) {
-  switch (action.type) {
-    case ActionTypes.SET_USER:
-      return { ...state, user: action.payload.user, token: action.payload.token };
-    case ActionTypes.LOGOUT:
-      return { ...state, user: null, token: null };
-    case ActionTypes.SET_PRODUCTS:
-      return { ...state, products: action.payload };
-    case ActionTypes.SET_ORDERS:
-      return { ...state, orders: action.payload };
-    case ActionTypes.ADD_ORDER:
-      return { ...state, orders: [...state.orders, action.payload] };
-    case ActionTypes.UPDATE_ORDER:
-      return {
-        ...state,
-        orders: state.orders.map(order =>
-          order._id === action.payload._id ? action.payload : order
-        ),
-      };
-    case ActionTypes.SET_LOADING:
-      return { ...state, loading: action.payload };
-    case ActionTypes.SET_ERROR:
-      return { ...state, error: action.payload };
-    case ActionTypes.CLEAR_ERROR:
-      return { ...state, error: null };
-    default:
-      return state;
-  }
-}
+import { initialState, ActionTypes, appReducer } from '../context/AppContext';
 
 describe('AppContext — Estado inicial', () => {
   it('tiene user null por defecto', () => {
@@ -54,8 +22,8 @@ describe('AppContext — Estado inicial', () => {
     expect(initialState.orders).toEqual([]);
   });
 
-  it('tiene loading en false', () => {
-    expect(initialState.loading).toBe(false);
+  it('tiene loading como mapa por dominio (auth/products/orders) en false', () => {
+    expect(initialState.loading).toEqual({ auth: false, products: false, orders: false });
   });
 
   it('tiene error null', () => {
@@ -85,11 +53,21 @@ describe('AppContext — Reducer', () => {
     expect(newState.token).toBe('jwt-token');
   });
 
-  it('LOGOUT limpia user y token', () => {
-    const loggedState = { ...initialState, user: { id: 1 }, token: 'jwt' };
+  it('LOGOUT limpia user, token, orders, products y error (evita datos del usuario anterior)', () => {
+    const loggedState = {
+      ...initialState,
+      user: { id: 1 },
+      token: 'jwt',
+      orders: [{ _id: 'o1' }],
+      products: [{ _id: 'p1' }],
+      error: 'algo falló antes',
+    };
     const newState = appReducer(loggedState, { type: ActionTypes.LOGOUT });
     expect(newState.user).toBeNull();
     expect(newState.token).toBeNull();
+    expect(newState.orders).toEqual([]);
+    expect(newState.products).toEqual([]);
+    expect(newState.error).toBeNull();
   });
 
   it('SET_PRODUCTS reemplaza la lista de productos', () => {
@@ -120,11 +98,25 @@ describe('AppContext — Reducer', () => {
     expect(newState.orders[1].status).toBe('confirmed');
   });
 
-  it('SET_LOADING cambia el estado de carga', () => {
-    let newState = appReducer(initialState, { type: ActionTypes.SET_LOADING, payload: true });
-    expect(newState.loading).toBe(true);
-    newState = appReducer(newState, { type: ActionTypes.SET_LOADING, payload: false });
-    expect(newState.loading).toBe(false);
+  it('SET_LOADING solo modifica el dominio indicado, sin afectar a los demás', () => {
+    let state = appReducer(initialState, {
+      type: ActionTypes.SET_LOADING,
+      payload: { domain: 'products', value: true },
+    });
+    expect(state.loading).toEqual({ auth: false, products: true, orders: false });
+
+    state = appReducer(state, {
+      type: ActionTypes.SET_LOADING,
+      payload: { domain: 'orders', value: true },
+    });
+    expect(state.loading).toEqual({ auth: false, products: true, orders: true });
+
+    // Terminar el loading de "products" no debe pisar el de "orders" (race condition del bug original)
+    state = appReducer(state, {
+      type: ActionTypes.SET_LOADING,
+      payload: { domain: 'products', value: false },
+    });
+    expect(state.loading).toEqual({ auth: false, products: false, orders: true });
   });
 
   it('SET_ERROR guarda un mensaje de error', () => {

@@ -1,6 +1,7 @@
 // DiscountedProductCard - Componente de producto con descuento - Diseño actualizado 2026
 import React from 'react';
 import './DiscountedProductCard.css';
+import { getEmojiForProduct } from '../utils/productDisplay';
 
 const DiscountedProductCard = ({
   product,
@@ -25,6 +26,7 @@ const DiscountedProductCard = ({
   const displayPrice = originalPrice || price || 0;
   const displayDiscountPrice = discountedPrice || discountPrice || 0;
   const displayStock = stock || quantity || 0;
+  const displayImageUrl = images?.[0] || imageUrl;
 
   const discountPct = Math.round(((displayPrice - displayDiscountPrice) / displayPrice) * 100);
   const isLowStock = displayStock <= 5;
@@ -39,37 +41,15 @@ const DiscountedProductCard = ({
   const expiresDate = formatDate(expiresAt);
   const isExpiringSoon = expiresAt && (new Date(expiresAt) - new Date() < 3_600_000 * 24 * 2);
 
-  // Obtener emoji según categoría o nombre
-  const getEmojiForProduct = () => {
-    const nameLower = name?.toLowerCase() || '';
-    const categoryLower = category?.toLowerCase() || '';
-    
-    if (categoryLower === 'panadería') return '🍞';
-    if (categoryLower === 'bebidas') return '🥤';
-    if (categoryLower === 'postres') return '🍰';
-    if (categoryLower === 'comida caliente') return '🍲';
-    
-    if (nameLower.includes('tomate') || nameLower.includes('manzana') || nameLower.includes('fruta')) return '🍎';
-    if (nameLower.includes('palta') || nameLower.includes('aguacate')) return '🥑';
-    if (nameLower.includes('zanahoria')) return '🥕';
-    if (nameLower.includes('pizza')) return '🍕';
-    if (nameLower.includes('sushi')) return '🍣';
-    if (nameLower.includes('burger') || nameLower.includes('hamburguesa')) return '🍔';
-    if (nameLower.includes('pan')) return '🍞';
-    if (nameLower.includes('ensalada')) return '🥗';
-    
-    return '🥡'; // Default
-  };
-
-  const productEmoji = getEmojiForProduct();
+  const productEmoji = getEmojiForProduct(name, category);
 
   return (
     <article className={`eco-card ${isLowStock ? 'eco-card--low-stock' : ''}`}>
       <div className="eco-card__badge">-{discountPct}%</div>
       
       <div className="eco-card__image-wrapper">
-        {imageUrl ? (
-          <img src={imageUrl} alt={name} className="eco-card__image" loading="lazy" />
+        {displayImageUrl ? (
+          <img src={displayImageUrl} alt={name} className="eco-card__image" loading="lazy" />
         ) : (
           <span className="eco-card__emoji">{productEmoji}</span>
         )}

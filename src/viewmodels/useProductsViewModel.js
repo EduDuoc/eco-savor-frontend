@@ -2,6 +2,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import { useAppContext, ActionTypes } from '../context/AppContext';
 import api from '../services/api';
+import { getErrorMessage } from '../utils/errors';
 
 export function useProductsViewModel() {
   const { dispatch, state } = useAppContext();
@@ -9,7 +10,7 @@ export function useProductsViewModel() {
 
   // Función base interna para cargar productos
   const loadProductsInternal = useCallback(async (endpoint, filterParams = {}) => {
-    dispatch({ type: ActionTypes.SET_LOADING, payload: true });
+    dispatch({ type: ActionTypes.SET_LOADING, payload: { domain: 'products', value: true } });
     setLocalError(null);
 
     try {
@@ -18,12 +19,12 @@ export function useProductsViewModel() {
       dispatch({ type: ActionTypes.SET_PRODUCTS, payload: data.data || data.products || data });
       return { success: true };
     } catch (error) {
-      const message = error.response?.data?.error || error.message || 'Error al cargar productos';
+      const message = getErrorMessage(error, 'Error al cargar productos');
       setLocalError(message);
       dispatch({ type: ActionTypes.SET_ERROR, payload: message });
       return { success: false, error: message };
     } finally {
-      dispatch({ type: ActionTypes.SET_LOADING, payload: false });
+      dispatch({ type: ActionTypes.SET_LOADING, payload: { domain: 'products', value: false } });
     }
   }, [dispatch]);
 
@@ -40,7 +41,7 @@ export function useProductsViewModel() {
   // Crear producto (admin/restaurant)
   // Nota: loadMyProducts está en deps porque usa useCallback y es estable
   const createProduct = useCallback(async (productData) => {
-    dispatch({ type: ActionTypes.SET_LOADING, payload: true });
+    dispatch({ type: ActionTypes.SET_LOADING, payload: { domain: 'products', value: true } });
     setLocalError(null);
 
     try {
@@ -52,18 +53,18 @@ export function useProductsViewModel() {
 
       return { success: true, data: data.data || data.product };
     } catch (error) {
-      const message = error.response?.data?.error || error.message || 'Error al crear producto';
+      const message = getErrorMessage(error, 'Error al crear producto');
       setLocalError(message);
       dispatch({ type: ActionTypes.SET_ERROR, payload: message });
       return { success: false, error: message };
     } finally {
-      dispatch({ type: ActionTypes.SET_LOADING, payload: false });
+      dispatch({ type: ActionTypes.SET_LOADING, payload: { domain: 'products', value: false } });
     }
   }, [dispatch, loadMyProducts]); // ✅ loadMyProducts está memoizado con useCallback, seguro incluirlo
 
   // Actualizar producto (admin/restaurant)
   const updateProduct = useCallback(async (id, productData) => {
-    dispatch({ type: ActionTypes.SET_LOADING, payload: true });
+    dispatch({ type: ActionTypes.SET_LOADING, payload: { domain: 'products', value: true } });
     setLocalError(null);
 
     try {
@@ -75,18 +76,18 @@ export function useProductsViewModel() {
 
       return { success: true, data };
     } catch (error) {
-      const message = error.response?.data?.error || error.message || 'Error al actualizar producto';
+      const message = getErrorMessage(error, 'Error al actualizar producto');
       setLocalError(message);
       dispatch({ type: ActionTypes.SET_ERROR, payload: message });
       return { success: false, error: message };
     } finally {
-      dispatch({ type: ActionTypes.SET_LOADING, payload: false });
+      dispatch({ type: ActionTypes.SET_LOADING, payload: { domain: 'products', value: false } });
     }
   }, [dispatch, loadMyProducts]); // ✅ loadMyProducts está memoizado con useCallback, seguro incluirlo
 
   // Eliminar producto (admin/restaurant)
   const deleteProduct = useCallback(async (id) => {
-    dispatch({ type: ActionTypes.SET_LOADING, payload: true });
+    dispatch({ type: ActionTypes.SET_LOADING, payload: { domain: 'products', value: true } });
     setLocalError(null);
 
     try {
@@ -97,18 +98,18 @@ export function useProductsViewModel() {
 
       return { success: true };
     } catch (error) {
-      const message = error.response?.data?.error || error.message || 'Error al eliminar producto';
+      const message = getErrorMessage(error, 'Error al eliminar producto');
       setLocalError(message);
       dispatch({ type: ActionTypes.SET_ERROR, payload: message });
       return { success: false, error: message };
     } finally {
-      dispatch({ type: ActionTypes.SET_LOADING, payload: false });
+      dispatch({ type: ActionTypes.SET_LOADING, payload: { domain: 'products', value: false } });
     }
   }, [dispatch, loadMyProducts]); // ✅ loadMyProducts está memoizado con useCallback, seguro incluirlo
 
   // Estado derivado del contexto
   const products = state.products;
-  const loading = state.loading;
+  const loading = state.loading.products;
   const error = localError || state.error;
 
   return {
