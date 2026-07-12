@@ -124,6 +124,7 @@ export function CatalogView({ onNavigate }) {
                     key={product._id || product.id}
                     product={product}
                     onReserve={handleReserve}
+                    hideReserveButton={user?.role === 'admin'}
                   />
                 ))}
               </div>

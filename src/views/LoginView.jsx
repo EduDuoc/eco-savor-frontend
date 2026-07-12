@@ -4,20 +4,39 @@ import { useAuthViewModel } from '../modules/index.js';
 import { AuthFooter } from '../components/AuthFooter';
 import { AuthHeader } from '../components/AuthHeader';
 
+const PROFILE_TABS = [
+  { key: 'buyer', label: '🛒 Cliente', expectedRole: 'buyer' },
+  { key: 'restaurant', label: '🏪 Administrador', expectedRole: 'restaurant' },
+  { key: 'admin', label: '👔 Gerente', expectedRole: 'admin' },
+];
+
 export function LoginView({ onNavigate }) {
   const { login, loading, error } = useAuthViewModel();
   const [formData, setFormData] = useState({ email: '', password: '' });
+  const [selectedProfile, setSelectedProfile] = useState('buyer');
+  const [roleMismatchError, setRoleMismatchError] = useState(null);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setRoleMismatchError(null);
+
     const result = await login(formData.email, formData.password);
+
     if (result.success) {
+      const expectedRole = PROFILE_TABS.find((tab) => tab.key === selectedProfile)?.expectedRole;
+      const actualRole = result.data?.role || result.user?.role;
+
+      if (expectedRole && actualRole && expectedRole !== actualRole) {
+        setRoleMismatchError(
+          `Este usuario es de tipo "${actualRole}", no "${expectedRole}". Te llevamos a tu panel correcto.`
+        );
+      }
+
       onNavigate?.('catalog');
     }
   };
 
   const handleGuestLogin = () => {
-    // Navegar directo al catálogo sin autenticar
     onNavigate?.('catalog');
   };
 
@@ -25,9 +44,42 @@ export function LoginView({ onNavigate }) {
     <div className="login-page">
       <AuthHeader />
 
-      {/* Formulario */}
       <div className="login-container">
         <div className="login-card">
+          <div
+            style={{
+              display: 'flex',
+              gap: '8px',
+              marginBottom: '1.5rem',
+              background: '#f1f5f9',
+              padding: '4px',
+              borderRadius: '12px',
+            }}
+          >
+            {PROFILE_TABS.map((tab) => (
+              <button
+                key={tab.key}
+                type="button"
+                onClick={() => setSelectedProfile(tab.key)}
+                style={{
+                  flex: 1,
+                  padding: '10px 8px',
+                  border: 'none',
+                  borderRadius: '8px',
+                  background: selectedProfile === tab.key ? '#fff' : 'transparent',
+                  color: selectedProfile === tab.key ? '#059669' : '#64748b',
+                  fontWeight: selectedProfile === tab.key ? 'bold' : 'normal',
+                  boxShadow: selectedProfile === tab.key ? '0 1px 3px rgba(0,0,0,0.15)' : 'none',
+                  cursor: 'pointer',
+                  fontSize: '0.85rem',
+                  transition: 'all 0.15s ease',
+                }}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
+
           <form onSubmit={handleSubmit}>
             <div className="form-group">
               <label>Email</label>
@@ -51,10 +103,24 @@ export function LoginView({ onNavigate }) {
             </div>
 
             {error && <div className="error-message">{error}</div>}
+            {roleMismatchError && (
+              <div
+                style={{
+                  background: '#fef3c7',
+                  color: '#92400e',
+                  padding: '10px 14px',
+                  borderRadius: '8px',
+                  fontSize: '0.85rem',
+                  marginTop: '0.75rem',
+                }}
+              >
+                {roleMismatchError}
+              </div>
+            )}
 
-            <button 
-              type="submit" 
-              disabled={loading} 
+            <button
+              type="submit"
+              disabled={loading}
               className="btn-primary"
               style={{ marginTop: '1rem' }}
             >
@@ -66,8 +132,8 @@ export function LoginView({ onNavigate }) {
             Usa cualquier email y contraseña para continuar
           </p>
 
-          <button 
-            onClick={handleGuestLogin} 
+          <button
+            onClick={handleGuestLogin}
             className="btn-primary btn-guest"
           >
             Entrar como invitado 👀

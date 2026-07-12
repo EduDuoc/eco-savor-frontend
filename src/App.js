@@ -6,7 +6,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { AppProvider, useAppContext, useAuthViewModel } from './modules';
-import { Navbar, LoginView, RegisterView, CatalogView, AdminView, RestaurantOrdersView, MyOrdersView, CartView, SuccessView } from './modules';
+import { Navbar, LoginView, RegisterView, CatalogView, AdminView, AdminDashboardView, RestaurantOrdersView, MyOrdersView, CartView, SuccessView } from './modules';
 import './App.css';
 import './styles/new-design.css';
 
@@ -14,7 +14,7 @@ import './styles/new-design.css';
 function AppContent() {
   const { state } = useAppContext();
   const { isAuthenticated, user, logout } = useAuthViewModel();
-  const [currentView, setCurrentView] = useState('catalog'); // Por defecto catálogo (invitado)
+  const [currentView, setCurrentView] = useState('login'); // Por defecto login (para elegir perfil)
   const [successOrderData, setSuccessOrderData] = useState(null);
 
   // Escuchar evento de auth fallida (token expirado) desde api.js
@@ -33,7 +33,11 @@ function AppContent() {
   useEffect(() => {
     // Si está logueado y está en login/register, ir al catálogo
     if (isAuthenticated && (currentView === 'login' || currentView === 'register')) {
-      setCurrentView(user?.role === 'restaurant' ? 'restaurant-orders' : 'catalog');
+      setCurrentView(
+        user?.role === 'restaurant' ? 'restaurant-orders' :
+        user?.role === 'admin' ? 'admin-dashboard' :
+        'catalog'
+      );
     }
   }, [isAuthenticated, user, currentView]);
 
@@ -57,6 +61,8 @@ function AppContent() {
         return <CatalogView onNavigate={setCurrentView} />;
       case 'admin':
         return <AdminView />;
+      case 'admin-dashboard':
+        return <AdminDashboardView onNavigate={setCurrentView} />;
       case 'restaurant-orders':
         return <RestaurantOrdersView />;
       case 'orders':

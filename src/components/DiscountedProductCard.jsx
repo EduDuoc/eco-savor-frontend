@@ -7,6 +7,7 @@ const DiscountedProductCard = ({
   product,
   onReserve,
   isLoading = false,
+  hideReserveButton = false,
 }) => {
   const {
     name,
@@ -80,13 +81,15 @@ const DiscountedProductCard = ({
           )}
         </div>
         
-        <button
-          className="eco-card__cta"
-          onClick={() => onReserve?.(product)}
-          disabled={isLoading || displayStock === 0}
-        >
-          + Agregar
-        </button>
+        {!hideReserveButton && (
+          <button
+            className="eco-card__cta"
+            onClick={() => onReserve?.(product)}
+            disabled={isLoading || displayStock === 0}
+          >
+            + Agregar
+          </button>
+        )}
       </div>
     </article>
   );

@@ -8,7 +8,6 @@ export function Navbar({ currentView, onNavigate }) {
   const { user, isAuthenticated, logout } = useAuthViewModel();
   const [itemCount, setItemCount] = useState(0);
   
-  // Leer carrito desde localStorage y actualizar contador
   useEffect(() => {
     const updateCartCount = () => {
       try {
@@ -26,13 +25,9 @@ export function Navbar({ currentView, onNavigate }) {
       }
     };
     
-    // Actualizar al montar
     updateCartCount();
     
-    // Escuchar cambios en localStorage (solo entre pestañas)
     window.addEventListener('storage', updateCartCount);
-    
-    // Escuchar evento personalizado (misma pestaña - cuando el ViewModel actualiza)
     window.addEventListener('cart-changed', updateCartCount);
     
     return () => {
@@ -76,6 +71,13 @@ export function Navbar({ currentView, onNavigate }) {
                   Gestionar órdenes
                 </button>
               </>
+            ) : user?.role === 'admin' ? (
+              <button
+                onClick={() => onNavigate('admin-dashboard')}
+                className={currentView === 'admin-dashboard' ? 'active' : ''}
+              >
+                Panel de Gerente
+              </button>
             ) : (
               <button
                 onClick={() => onNavigate('orders')}
@@ -84,12 +86,14 @@ export function Navbar({ currentView, onNavigate }) {
                 Mis pedidos
               </button>
             )}
-            <button
-              onClick={() => onNavigate('cart')}
-              className="cart-button"
-            >
-              🛒 Carrito {itemCount > 0 && <span className="cart-count">{itemCount}</span>}
-            </button>
+            {user?.role !== 'admin' && (
+              <button
+                onClick={() => onNavigate('cart')}
+                className="cart-button"
+              >
+                🛒 Carrito {itemCount > 0 && <span className="cart-count">{itemCount}</span>}
+              </button>
+            )}
             <div className="user-info">
               <span>Hola, {user?.name || user?.email || 'Usuario'}</span>
               <button onClick={handleLogout} className="btn-logout">Cerrar Sesión</button>
