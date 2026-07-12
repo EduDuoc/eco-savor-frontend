@@ -1,4 +1,4 @@
-// Navbar - Componente de navegación - Diseño actualizado 2026
+﻿// Navbar - Componente de navegación - Diseño actualizado 2026
 import React, { useState, useEffect } from 'react';
 import { useAuthViewModel } from '../modules/index.js';
 
@@ -72,12 +72,26 @@ export function Navbar({ currentView, onNavigate }) {
                 </button>
               </>
             ) : user?.role === 'admin' ? (
-              <button
-                onClick={() => onNavigate('admin-dashboard')}
-                className={currentView === 'admin-dashboard' ? 'active' : ''}
-              >
-                Panel de Gerente
-              </button>
+              <>
+                <button
+                  onClick={() => onNavigate('admin-dashboard-stores')}
+                  className={currentView === 'admin-dashboard-stores' ? 'active' : ''}
+                >
+                  🏪 Panel Tiendas
+                </button>
+                <button
+                  onClick={() => onNavigate('admin-dashboard-customers')}
+                  className={currentView === 'admin-dashboard-customers' ? 'active' : ''}
+                >
+                  👥 Panel Clientes
+                </button>
+                <button
+                  onClick={() => onNavigate('admin-feedback')}
+                  className={currentView === 'admin-feedback' ? 'active' : ''}
+                >
+                  Felicitaciones
+                </button>
+              </>
             ) : (
               <button
                 onClick={() => onNavigate('orders')}

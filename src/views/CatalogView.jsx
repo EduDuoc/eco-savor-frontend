@@ -1,15 +1,17 @@
-// CatalogView - View Layer (MVVM Pattern)
+﻿// CatalogView - View Layer (MVVM Pattern)
 // - Buyers/Invitados: Ven TODOS los productos
 // - Restaurants: Ven SOLO sus propios productos
 import React, { useEffect, useState } from 'react';
 import { useProductsViewModel, useGuestCartViewModel, useAuthViewModel } from '../modules/index.js';
 import DiscountedProductCard from '../components/DiscountedProductCard';
+import { FeedbackForm } from '../components/FeedbackForm';
 
 export function CatalogView({ onNavigate }) {
   const { products, loadProducts, loadMyProducts, loading, error } = useProductsViewModel();
   const { addToCart, cartItems, itemCount } = useGuestCartViewModel();
   const { isAuthenticated, user } = useAuthViewModel();
   const [filter, setFilter] = useState('');
+  const [showFeedback, setShowFeedback] = useState(false);
 
   // Cargar productos según el rol del usuario
   useEffect(() => {
@@ -78,7 +80,7 @@ export function CatalogView({ onNavigate }) {
   return (
     <div className="catalog-container">
       <div className="catalog-header">
-        <h1>{isAuthenticated && user?.role === 'restaurant' ? 'Mis Productos' : 'Catálogo de Productos'}</h1>
+        <h1>{isAuthenticated && user?.role === 'restaurant' ? 'Mis Productos' : 'Catálogo Productos Tiendas'}</h1>
         {itemCount > 0 && (
           <button
             onClick={() => onNavigate?.('cart')}
@@ -87,7 +89,24 @@ export function CatalogView({ onNavigate }) {
             🛒 Ver Carrito ({itemCount})
           </button>
         )}
+        {user?.role !== 'admin' && (
+          <button
+            onClick={() => setShowFeedback(true)}
+            style={{
+              background: 'transparent',
+              border: '1px solid #cbd5e1',
+              color: '#64748b',
+              padding: '8px 14px',
+              borderRadius: '8px',
+              fontSize: '0.85rem',
+              cursor: 'pointer',
+            }}
+          >
+            Mejoras y Felicitaciones
+          </button>
+        )}
       </div>
+      {showFeedback && <FeedbackForm onClose={() => setShowFeedback(false)} />}
       
       {!isAuthenticated && (
         <div className="guest-notice">

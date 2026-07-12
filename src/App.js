@@ -1,4 +1,4 @@
-// App.js - Punto de entrada principal
+﻿// App.js - Punto de entrada principal
 // Implementa los 3 patrones de Frontend:
 // 1. Module Pattern: Importa desde modules/index.js
 // 2. MVVM: Usa ViewModels + Views separadas
@@ -6,7 +6,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { AppProvider, useAppContext, useAuthViewModel } from './modules';
-import { Navbar, LoginView, RegisterView, CatalogView, AdminView, AdminDashboardView, RestaurantOrdersView, MyOrdersView, CartView, SuccessView } from './modules';
+import { Navbar, LoginView, RegisterView, CatalogView, AdminView, AdminDashboardView, FeedbackDashboardView, RestaurantOrdersView, MyOrdersView, CartView, SuccessView } from './modules';
 import './App.css';
 import './styles/new-design.css';
 
@@ -35,7 +35,8 @@ function AppContent() {
     if (isAuthenticated && (currentView === 'login' || currentView === 'register')) {
       setCurrentView(
         user?.role === 'restaurant' ? 'restaurant-orders' :
-        user?.role === 'admin' ? 'admin-dashboard' :
+        user?.role === 'admin' ? 'admin-dashboard-stores' :
+
         'catalog'
       );
     }
@@ -61,8 +62,12 @@ function AppContent() {
         return <CatalogView onNavigate={setCurrentView} />;
       case 'admin':
         return <AdminView />;
-      case 'admin-dashboard':
-        return <AdminDashboardView onNavigate={setCurrentView} />;
+      case 'admin-dashboard-stores':
+        return <AdminDashboardView onNavigate={setCurrentView} initialSection="stores" />;
+      case 'admin-dashboard-customers':
+        return <AdminDashboardView onNavigate={setCurrentView} initialSection="customers" />;
+      case 'admin-feedback':
+        return <FeedbackDashboardView onNavigate={setCurrentView} />;
       case 'restaurant-orders':
         return <RestaurantOrdersView />;
       case 'orders':

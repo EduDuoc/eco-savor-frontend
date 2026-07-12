@@ -37,10 +37,14 @@ const CARD_STYLE = {
   boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
 };
 
-export function AdminDashboardView({ onNavigate }) {
+export function AdminDashboardView({ onNavigate, initialSection = 'stores' }) {
   const { orders, getMyOrders, loading: ordersLoading, error: ordersError } = useOrdersViewModel();
   const { user, isAuthenticated } = useAuthViewModel();
-  const [section, setSection] = useState('stores'); // 'stores' | 'customers'
+  const [section, setSection] = useState(initialSection); // 'stores' | 'customers'
+
+  useEffect(() => {
+    setSection(initialSection);
+  }, [initialSection]);
 
   const [restaurants, setRestaurants] = useState([]);
   const [restaurantsLoading, setRestaurantsLoading] = useState(true);
@@ -247,37 +251,6 @@ export function AdminDashboardView({ onNavigate }) {
   return (
     <div style={{ padding: '20px' }}>
       <h1 style={{ marginBottom: '12px' }}>Panel de Gerente General</h1>
-
-      {!selectedRestaurant && !selectedCustomer && (
-        <div style={{ display: 'flex', gap: '8px', marginBottom: '24px', background: '#f1f5f9', padding: '4px', borderRadius: '12px', maxWidth: '400px' }}>
-          <button
-            onClick={() => setSection('stores')}
-            style={{
-              flex: 1, padding: '10px', border: 'none', borderRadius: '8px',
-              background: section === 'stores' ? '#fff' : 'transparent',
-              color: section === 'stores' ? '#059669' : '#64748b',
-              fontWeight: section === 'stores' ? 'bold' : 'normal',
-              boxShadow: section === 'stores' ? '0 1px 3px rgba(0,0,0,0.15)' : 'none',
-              cursor: 'pointer',
-            }}
-          >
-            🏪 Tiendas
-          </button>
-          <button
-            onClick={() => setSection('customers')}
-            style={{
-              flex: 1, padding: '10px', border: 'none', borderRadius: '8px',
-              background: section === 'customers' ? '#fff' : 'transparent',
-              color: section === 'customers' ? '#059669' : '#64748b',
-              fontWeight: section === 'customers' ? 'bold' : 'normal',
-              boxShadow: section === 'customers' ? '0 1px 3px rgba(0,0,0,0.15)' : 'none',
-              cursor: 'pointer',
-            }}
-          >
-            👥 Clientes
-          </button>
-        </div>
-      )}
 
       {section === 'stores' && (
         <>
