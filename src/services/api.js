@@ -27,11 +27,14 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      // Token expirado o inválido
+      // Solo disparar auth-failed si el usuario ESTABA autenticado (tenía token).
+      // Si no tenía token, es simplemente un endpoint protegido — no hay sesión que expiró.
+      const hadToken = !!localStorage.getItem('token');
       localStorage.removeItem('token');
       localStorage.removeItem('user');
-      // Dispatchear evento personalizado para que App.js maneje el logout
-      window.dispatchEvent(new CustomEvent('auth-failed'));
+      if (hadToken) {
+        window.dispatchEvent(new CustomEvent('auth-failed'));
+      }
     }
     if (error.response?.status === 403) {
       // No tiene permiso

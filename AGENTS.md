@@ -34,7 +34,8 @@ No lint/typecheck scripts configured — CRA defaults apply.
 
 - Test runner: `react-scripts test` (Jest)
 - Setup: `src/setupTests.js` imports `@testing-library/jest-dom`
-- Single test file exists: `src/App.test.js` (default CRA template — likely stale)
+- 8 test suites, 38 tests passing (~23% statement coverage): `AppContext.test.js`, `useAuthViewModel.test.js`, API service tests, module-exports tests, among others
+- Run once (non-watch, with coverage): `CI=true npm test -- --watchAll=false --coverage`
 - **No custom test utilities or fixtures** — tests import directly from `src/modules`
 
 ## API Integration
@@ -82,11 +83,18 @@ src/
 ├── modules/           # Module Pattern — single export hub
 ├── viewmodels/        # MVVM — business logic (custom hooks)
 ├── views/             # MVVM — UI components only
-├── components/        # Reusable presentational components
+├── components/        # Reusable presentational components (incl. AuthHeader, AuthFooter, StatusBadge)
 ├── context/           # Observer Pattern — global state
 ├── services/          # API layer (axios)
+├── utils/             # Shared helpers: getEmojiForProduct (productDisplay.js), getErrorMessage (errors.js)
 └── App.js            # Root component + view router
 ```
+
+**Shared utilities (de-duplicated in a refactor pass):**
+- `src/utils/productDisplay.js` — `getEmojiForProduct(name, category)`. Single source of truth; don't reimplement locally in a component/view.
+- `src/utils/errors.js` — `getErrorMessage(error, fallback)`. Use this instead of inlining `error.response?.data?.error || error.message || '...'` in viewmodels.
+- `src/components/StatusBadge.jsx` — shared order-status badge (`showLabel` prop toggles the label+color vs. color-only variants used by `MyOrdersView`/`RestaurantOrdersView`).
+- `src/components/AuthHeader.jsx` — shared logo/title/tagline header for `LoginView`/`RegisterView`, parallel to the existing `AuthFooter`.
 
 **Import rule:** Always import from `src/modules/index.js`, never directly from `src/views/*` or `src/viewmodels/*`.
 
@@ -97,6 +105,7 @@ src/
 - **Test file is stale** — `App.test.js` looks for "learn react" text which doesn't exist.
 - **No TypeScript** — plain JavaScript.
 - **No CI/CD config** in repo — deployment process is external.
+- **Login has no role selector.** `LoginView` only takes email/password. The user's role always comes from the backend's JWT response (`data.user.role`), never from client-side selection — don't reintroduce a "buyer/admin" toggle that doesn't actually influence `login()`.
 
 ## Conventions
 

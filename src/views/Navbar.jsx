@@ -127,6 +127,18 @@ export function Navbar({ currentView, onNavigate }) {
             >
               🛒 Carrito {itemCount > 0 && <span className="cart-count">{itemCount}</span>}
             </button>
+            <button
+              onClick={() => onNavigate('login')}
+              className={currentView === 'login' ? 'active' : ''}
+            >
+              Iniciar sesión
+            </button>
+            <button
+              onClick={() => onNavigate('register')}
+              className={currentView === 'register' ? 'active' : ''}
+            >
+              Registrarse
+            </button>
           </>
         )}
       </div>

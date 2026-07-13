@@ -14,7 +14,7 @@ import './styles/new-design.css';
 function AppContent() {
   const { state } = useAppContext();
   const { isAuthenticated, user, logout } = useAuthViewModel();
-  const [currentView, setCurrentView] = useState('login'); // Por defecto login (para elegir perfil)
+  const [currentView, setCurrentView] = useState('catalog');
   const [successOrderData, setSuccessOrderData] = useState(null);
 
   // Escuchar evento de auth fallida (token expirado) desde api.js
